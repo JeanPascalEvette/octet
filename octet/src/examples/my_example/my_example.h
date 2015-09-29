@@ -4,9 +4,13 @@
 //
 // Modular Framework for OpenGLES2 rendering on multiple platforms.
 //
+
+#include "tinyxml2.h"
+
 namespace octet {
   /// Scene containing a box with octet.
   class my_example : public app {
+	  collada_builder loader;
 
 	  // Variables used for the mobile camera
 	  mouse_look mouse_look_helper;
@@ -124,6 +128,13 @@ namespace octet {
 	  mat.loadIdentity();
 	  mat.translate(0, -1, 20);
 	  app_scene->add_shape(mat, new mesh_box(vec3(16, 3, 1)), darkgreen, false);
+
+
+	  tinyxml2::XMLDocument doc;
+	  doc.LoadFile("test.xml");
+	  string LevelName = doc.FirstChildElement("Data")->FirstChildElement("MyTag")->GetText();
+
+	
 
 	  // Generate white ball (This will be modified to position the ball based on some input data later)
 	  mat.loadIdentity();
@@ -306,6 +317,7 @@ namespace octet {
 			{
 				if (vecInsideOfCircle(ballPosition, (*it2)->get_position(), holesRadius))
 				{
+					(*it)->set_position(vec3(0, -10.0f, 0)); // Hides the bal until I can figure out how to properly delete it.
 					app_scene->delete_mesh_instance((*it)->get_mesh_instance());
 					it = redBalls.erase(it);
 					hasBallBeenDeleted = true;
