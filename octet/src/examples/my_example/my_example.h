@@ -29,14 +29,21 @@ namespace octet {
 
 	  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 0, -35)); // Have to move the camera for it to be centered
 
-	  if (true) // TRUE = topDown  - FALSE = side
+	  int CameraPosition = 2;
+	  if (CameraPosition == 0) // 0 = topDown  - 1 = side - 2 = oblique
 	  {
 		  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 60, 0));
 		  app_scene->get_camera_instance(0)->get_node()->rotate(-90, vec3(1, 0, 0));
 	  }
-	  else
+	  else if (CameraPosition == 1)
 	  {
 		  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 0, 50));
+	  }
+	  else if (CameraPosition == 2)
+	  {
+		  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 0, 50));
+		  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 30, 0));
+		  app_scene->get_camera_instance(0)->get_node()->rotate(-45, vec3(1, 0, 0));
 	  }
 	  mat4t mat;
 	  material *green = new material(vec4(0, 1, 0, 1));
@@ -119,14 +126,19 @@ namespace octet {
 	void generateHole()
 	{
 		//Based on example_geometry's helix
+		// use a shader that just outputs the color_ attribute.
+		param_shader *shader = new param_shader("shaders/default.vs", "shaders/simple_color.fs");
+		material *black = new material(vec4(0, 0, 0, 1), shader);
+
+
 		mesh *hole = new mesh();
 
 		// number of steps in helix
-		size_t num_steps = 30;
+		size_t num_steps = 160;
 
 		// allocate vertices and indices into OpenGL buffers
 		size_t num_vertices = num_steps * 2 + 2;
-		size_t num_indices = num_steps;
+		size_t num_indices = num_steps*6;
 		hole->allocate(sizeof(my_vertex) * num_vertices, sizeof(uint32_t) * num_indices);
 		hole->set_params(sizeof(my_vertex), num_indices, num_vertices, GL_TRIANGLES, GL_UNSIGNED_INT);
 
@@ -144,19 +156,17 @@ namespace octet {
 			uint32_t *idx = il.u32();
 
 			// make the vertices
-			float radius1 = 1.0f;
-			float radius2 = 7.0f;
-			float height = 24.0f;
-			float num_twists = 4.0f;
+			float radius = 7.0f;
 			for (size_t i = 0; i != num_steps + 1; ++i) {
-				float r = 0.0f, g = 1.0f * i / num_steps, b = 1.0f;
+				float r = 0, g = 0, b = 0;
+				//float r = 0.0f, g = 1.0f * i / num_steps, b = 1.0f;
 				//float y = i * (height / num_steps) - height * 0.5f;
-				float angle = i * (num_twists * 2.0f * 3.14159265f / num_steps);
-				vtx->pos = vec3p(cosf(angle) * radius1, 0, sinf(angle) * radius1);
+				float angle = i * (2.0f * 3.14159265f / num_steps);
+				vtx->pos = vec3p(0, 0, 0);
 				vtx->color = make_color(r, g, b);
 				log("%f %f %f %08x\n", r, g, b, vtx->color);
 				vtx++;
-				vtx->pos = vec3p(cosf(angle) * radius2, 0, sinf(angle) * radius2);
+				vtx->pos = vec3p(cosf(angle) * radius, 3, sinf(angle) * radius);
 				vtx->color = make_color(r, g, b);
 				vtx++;
 			}
@@ -181,7 +191,6 @@ namespace octet {
 		}
 
 
-		material *black = new material(vec4(0, 0, 0, 1));
 		//Add the hole to the app_scene
 		scene_node *node = new scene_node();
 		app_scene->add_child(node);
