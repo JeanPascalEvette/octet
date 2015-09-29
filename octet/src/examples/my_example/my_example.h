@@ -12,12 +12,9 @@ namespace octet {
 	  ref<camera_instance> the_camera;
 	  ref<scene_node> player_node;
 
-	  struct circle {
-		  vec3p pos;
-		  float radius;
-	  };
 	  std::vector<ref<scene_node>> redBalls;
-	  std::vector<ref<circle>> myHoles;
+	  std::vector<ref<scene_node>> myHoles;
+	  float holesRadius;
 	  struct my_vertex {
 		  vec3p pos;
 		  uint32_t color;
@@ -36,7 +33,7 @@ namespace octet {
     /// this is called once OpenGL is initialized
     void app_init() {
       app_scene =  new visual_scene();
-
+	  holesRadius = 1.4f;
 	  mat4t mat;
       app_scene->create_default_camera_and_lights();
 
@@ -48,7 +45,7 @@ namespace octet {
 
 	  the_camera->get_node()->translate(vec3(0, 0, -35)); // Have to move the camera for it to be centered
 	  mesh_instance *mi;
-	  int CameraPosition = 0;
+	  int CameraPosition = 3;
 	  if (CameraPosition == 0) // 0 = topDown  - 1 = side - 2 = oblique - 3 = mobile
 	  {
 		  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 60, 0));
@@ -124,12 +121,13 @@ namespace octet {
 
 
 
-	  generateHole(vec3(13.5f, 3.5f, 0.0f), 1.4f);
-	  generateHole(vec3(-13.5f, 3.5f, 0.0f), 1.4f);
-	  generateHole(vec3(13.0f, 3.5f, 18.0f), 1.4f);
-	  generateHole(vec3(13.0f, 3.5f, -18.0f), 1.4f);
-	  generateHole(vec3(-13.0f, 3.5f, 18.0f), 1.4f);
-	  generateHole(vec3(-13.0f, 3.5f, -18.0f), 1.4f);
+	  myHoles = std::vector<ref<scene_node>>();
+	  generateHole(vec3(13.5f, 3.5f, 0.0f), holesRadius);
+	  generateHole(vec3(-13.5f, 3.5f, 0.0f), holesRadius);
+	  generateHole(vec3(13.0f, 3.5f, 18.0f), holesRadius);
+	  generateHole(vec3(13.0f, 3.5f, -18.0f), holesRadius);
+	  generateHole(vec3(-13.0f, 3.5f, 18.0f), holesRadius);
+	  generateHole(vec3(-13.0f, 3.5f, -18.0f), holesRadius);
 
 
 
@@ -147,10 +145,12 @@ namespace octet {
 	  scene_node *redBall2 = app_scene->get_mesh_instance(7)->get_node();
 	  scene_node *redBall3 = app_scene->get_mesh_instance(8)->get_node();
 
-	  std::vector<ref<scene_node>> redBalls = std::vector<ref<scene_node>>();
+	  redBalls = std::vector<ref<scene_node>>();
 	  redBalls.push_back(redBall1);
 	  redBalls.push_back(redBall2);
 	  redBalls.push_back(redBall3);
+	  if (CameraPosition == 3)
+		  redBalls.push_back(player_node);
 
 	  ball->set_linear_velocity(vec3(getRandomFloat(30), 0, getRandomFloat(30)));
 	  ball->set_friction(0.1f);
@@ -247,6 +247,7 @@ namespace octet {
 		app_scene->add_child(node);
 		app_scene->add_mesh_instance(new mesh_instance(node, hole, black));
 		node->translate(position);
+		myHoles.push_back(node);
 	}
 
 	float getRandomFloat(int max)
@@ -254,14 +255,15 @@ namespace octet {
 		return rand() % max;
 	}
 
-	bool vecInsideOfCircle(vec3 position, vec3 circlePos, float circleRadius)
+	bool vecInsideOfCircle(vec3 position, vec3 circlePos, float circleRadius, float marginOfError = 0.0f)
 	{
-		return position.x() < circlePos.x() + circleRadius &&
-			position.x() > circlePos.x() - circleRadius &&
-			position.y() < circlePos.y() + circleRadius &&
-			position.y() > circlePos.y() - circleRadius &&
-			position.z() < circlePos.z() + circleRadius &&
-			position.z() > circlePos.z() - circleRadius;
+		circleRadius += marginOfError;
+		bool posXP = position.x() < circlePos.x() + circleRadius;
+		bool posXM = position.x() > circlePos.x() - circleRadius;
+		bool posZP = position.z() < circlePos.z() + circleRadius;
+		bool posZM = position.z() > circlePos.z() - circleRadius;
+
+		return posXP && posXM && posZP && posZM;
 	}
 
     /// this is called to draw the world
@@ -290,7 +292,11 @@ namespace octet {
 	  for (int i = 0; i < redBalls.size(); i++)
 	  {
 		  vec3 ballPosition = redBalls[i]->get_position();
-		  if()
+		  for (int u = 0; u < myHoles.size(); u++)
+		  {
+			  if (vecInsideOfCircle(ballPosition, myHoles[i]->get_position(), holesRadius, 0.5f))
+				  printf("1");
+		  }
 	  }
 
     }
