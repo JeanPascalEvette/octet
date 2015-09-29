@@ -343,7 +343,7 @@ namespace octet {
 		{
 			if (vecInsideOfCircle(playerPosition, (*it2)->get_position(), holesRadius))
 			{
-				whiteBall->set_position(vec3(0, -10.0f, 0)); // Hides the bal until I can figure out how to properly delete it.
+				whiteBall->set_position(vec3(0, -10.0f, 0)); // Hides the ball until I can figure out how to properly delete it.
 				app_scene->delete_mesh_instance(whiteBall->get_mesh_instance());
 				printf("White Ball has been deleted.");
 				break;
@@ -351,6 +351,12 @@ namespace octet {
 			else
 				++it2;
 		}
+
+	}
+
+	/// this is called to handle inputs
+	void handleInputs()
+	{
 
 	}
 
@@ -372,7 +378,6 @@ namespace octet {
       // update matrices. assume 30 fps.
       app_scene->update(1.0f/30);
 
-	  
 
       // draw the scene
       app_scene->render((float)vx / vy);
@@ -380,6 +385,8 @@ namespace octet {
 
 	  // handle balls in pockets
 	  checkIfBallIsInPocket();
+
+	  handleInputs();
 
     }
   };
