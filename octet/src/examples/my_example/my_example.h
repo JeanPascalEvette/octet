@@ -368,6 +368,8 @@ namespace octet {
 	void handleInputs()
 	{
 
+		
+
 		if (is_key_down(key_space) && xMousePos == -999 && yMousePos == -999)
 		{
 			get_mouse_pos(xMousePos, yMousePos);
@@ -377,11 +379,16 @@ namespace octet {
 			int newX, newY;
 			get_mouse_pos(newX, newY);
 
-			vec3 dirVector = vec3(newX - xMousePos, 0, newY - yMousePos);
+			vec2 dirVector = vec2(newX - xMousePos, newY - yMousePos);
 			int vectorLength = sqrt(pow(dirVector.x(),2) + pow(dirVector.y(),2));
-			vec3 unitVector = dirVector / vectorLength;
+			vec2 unitVector = dirVector / vectorLength;
 
-			whiteBall->set_linear_velocity(-unitVector*3);
+			if (vectorLength > 500)
+				vectorLength = 50;
+			else
+				vectorLength /= 10;
+
+			whiteBall->set_linear_velocity(-1*vec3(unitVector.x(), 0 , unitVector.y()) * vectorLength);
 
 			xMousePos = -999;
 			yMousePos = -999;
