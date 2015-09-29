@@ -116,7 +116,12 @@ namespace octet {
 	  mat.translate(1, 0, -8);
 	  app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true);
 
-	  generateHole();
+	  generateHole(vec3(13.5f, 3.5f, 0.0f), 1.4f);
+	  generateHole(vec3(-13.5f, 3.5f, 0.0f), 1.4f);
+	  generateHole(vec3(13.0f, 3.5f, 18.0f), 1.4f);
+	  generateHole(vec3(13.0f, 3.5f, -18.0f), 1.4f);
+	  generateHole(vec3(-13.0f, 3.5f, 18.0f), 1.4f);
+	  generateHole(vec3(-13.0f, 3.5f, -18.0f), 1.4f);
 
 
 
@@ -158,7 +163,7 @@ namespace octet {
 
     }
 
-	void generateHole()
+	void generateHole(vec3 position, float radius)
 	{
 		//Based on example_geometry's helix
 		// use a shader that just outputs the color_ attribute.
@@ -191,7 +196,6 @@ namespace octet {
 			uint32_t *idx = il.u32();
 
 			// make the vertices
-			float radius = 7.0f;
 			for (size_t i = 0; i != num_steps + 1; ++i) {
 				float r = 0, g = 0, b = 0;
 				//float r = 0.0f, g = 1.0f * i / num_steps, b = 1.0f;
@@ -201,7 +205,7 @@ namespace octet {
 				vtx->color = make_color(r, g, b);
 				log("%f %f %f %08x\n", r, g, b, vtx->color);
 				vtx++;
-				vtx->pos = vec3p(cosf(angle) * radius, 3, sinf(angle) * radius);
+				vtx->pos = vec3p(cosf(angle) * radius, 0, sinf(angle) * radius);
 				vtx->color = make_color(r, g, b);
 				vtx++;
 			}
@@ -230,6 +234,7 @@ namespace octet {
 		scene_node *node = new scene_node();
 		app_scene->add_child(node);
 		app_scene->add_mesh_instance(new mesh_instance(node, hole, black));
+		node->translate(position);
 	}
 
 	float getRandomFloat(int max)
