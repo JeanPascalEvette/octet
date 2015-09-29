@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<Player>
+	<Location>
+		<x>0</x>
+		<y>0</y>
+		<z>0</z>
+	</Location>
+	<Velocity>
+		<x>0</x>
+		<y>0</y>
+		<z>0</z>
+	</Velocity>	
+</Player>
+<ListOfRedBall>
+	<RedBall>
+		<Location>
+			<x>12</x>
+			<y>0</y>
+			<z>-3</z>
+		</Location>
+		<Velocity>
+			<x>12</x>
+			<y>0</y>
+			<z>5</z>
+		</Velocity>	
+	</RedBall>
+	<RedBall>
+		<Location>
+			<x>5</x>
+			<y>0</y>
+			<z>6</z>
+		</Location>
+		<Velocity>
+			<x>4</x>
+			<y>0</y>
+			<z>9</z>
+		</Velocity>	
+	</RedBall>
+	<RedBall>
+		<Location>
+			<x>1</x>
+			<y>0</y>
+			<z>-8</z>
+		</Location>
+		<Velocity>
+			<x>21</x>
+			<y>0</y>
+			<z>9</z>
+		</Velocity>	
+	</RedBall>
+</ListOfRedBall>
+</Data>

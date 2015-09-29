@@ -132,27 +132,48 @@ namespace octet {
 
 	  tinyxml2::XMLDocument doc;
 	  doc.LoadFile("test.xml");
-	  string LevelName = doc.FirstChildElement("Data")->FirstChildElement("MyTag")->GetText();
+	  float playerLocX = atof(doc.FirstChildElement("Data")->FirstChildElement("Player")->FirstChildElement("Location")->FirstChildElement("x")->GetText());
+	  float playerLocY = atof(doc.FirstChildElement("Data")->FirstChildElement("Player")->FirstChildElement("Location")->FirstChildElement("y")->GetText());
+	  float playerLocZ = atof(doc.FirstChildElement("Data")->FirstChildElement("Player")->FirstChildElement("Location")->FirstChildElement("z")->GetText());
 
-	
+	  float playerVelX = atof(doc.FirstChildElement("Data")->FirstChildElement("Player")->FirstChildElement("Velocity")->FirstChildElement("x")->GetText());
+	  float playerVelY = atof(doc.FirstChildElement("Data")->FirstChildElement("Player")->FirstChildElement("Velocity")->FirstChildElement("y")->GetText());
+	  float playerVelZ = atof(doc.FirstChildElement("Data")->FirstChildElement("Player")->FirstChildElement("Velocity")->FirstChildElement("z")->GetText());
 
 	  // Generate white ball (This will be modified to position the ball based on some input data later)
 	  mat.loadIdentity();
-	  mat.translate(0, 0, 0);
+	  mat.translate(playerLocX, playerLocY, playerLocZ);
 	  app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), white, true);
-
-	  // Generate a few red balls (This will be modified to generate balls based on some input data later) 
-	  mat.loadIdentity();
-	  mat.translate(12, 0, -3);
-	  app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true);
-	  mat.loadIdentity();
-	  mat.translate(5, 0, 6);
-	  app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true);
-	  mat.loadIdentity();
-	  mat.translate(1, 0, -8);
-	  app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true);
+	  scene_node *ball = app_scene->get_mesh_instance(6)->get_node();
+	  ball->set_linear_velocity(vec3(playerVelX, playerVelY, playerVelZ));
+	  int currentNode = 7;
 
 
+	  redBalls = std::vector<ref<scene_node>>();
+	  tinyxml2::XMLNode * el = doc.FirstChildElement("Data")->FirstChildElement("ListOfRedBall")->FirstChildElement();
+	  while (el != nullptr)
+	  {
+		  float redBallLocX = atof(el->FirstChildElement("Location")->FirstChildElement("x")->GetText());
+		  float redBallLocY = atof(el->FirstChildElement("Location")->FirstChildElement("y")->GetText());
+		  float redBallLocZ = atof(el->FirstChildElement("Location")->FirstChildElement("z")->GetText());
+
+		  float redBallVelX = atof(el->FirstChildElement("Velocity")->FirstChildElement("x")->GetText());
+		  float redBallVelY = atof(el->FirstChildElement("Velocity")->FirstChildElement("y")->GetText());
+		  float redBallVelZ = atof(el->FirstChildElement("Velocity")->FirstChildElement("z")->GetText());
+		  mat.loadIdentity();
+		  mat.translate(redBallLocX, redBallLocY, redBallLocZ);
+		  app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true);
+		  scene_node *redBall = app_scene->get_mesh_instance(currentNode++)->get_node();
+		  redBall->set_linear_velocity(vec3(redBallVelX, redBallVelY, redBallVelZ));
+		  redBall->set_friction(0.1f);
+		  redBall->set_resitution(1.0f);
+		  redBalls.push_back(redBall);
+		  el = el->NextSibling();
+
+	  }
+
+
+	
 	  // Generate the 6 holes of the pool table
 	  myHoles = std::vector<ref<scene_node>>();
 	  generateHole(vec3(13.5f, 3.5f, 0.0f), holesRadius);
@@ -170,36 +191,19 @@ namespace octet {
 	  scene_node *wall2 = app_scene->get_mesh_instance(3)->get_node();
 	  scene_node *wall3 = app_scene->get_mesh_instance(4)->get_node();
 	  scene_node *wall4 = app_scene->get_mesh_instance(5)->get_node();
-	  scene_node *ball = app_scene->get_mesh_instance(6)->get_node();
-	  scene_node *redBall1 = app_scene->get_mesh_instance(7)->get_node();
-	  scene_node *redBall2 = app_scene->get_mesh_instance(8)->get_node();
-	  scene_node *redBall3 = app_scene->get_mesh_instance(9)->get_node();
 
-	  // Store red balls in container
-	  redBalls = std::vector<ref<scene_node>>();
-	  redBalls.push_back(redBall1);
-	  redBalls.push_back(redBall2);
-	  redBalls.push_back(redBall3);
 	  // If mobile camera is enabled, store player as a red ball.
 	  if (CameraPosition == 3)
 		  redBalls.push_back(player_node);
 
 	  // Give random movement to the balls (This will be modified to generate velocities based on some input data later)
 	  // Also set some friction and restitution values. Those need to be modified to make it more realistic
-	  ball->set_linear_velocity(vec3(getRandomFloat(30), 0, getRandomFloat(30)));
+	  
 	  ball->set_friction(0.1f);
 	  ball->set_resitution(1.0f);
 
-	  redBall1->set_linear_velocity(vec3(getRandomFloat(30), 0, getRandomFloat(30)));
-	  redBall1->set_friction(0.1f);
-	  redBall1->set_resitution(1.0f);
-	  redBall2->set_linear_velocity(vec3(getRandomFloat(30), 0, getRandomFloat(30)));
-	  redBall2->set_friction(0.1f);
-	  redBall2->set_resitution(1.0f);
-	  redBall3->set_linear_velocity(vec3(getRandomFloat(30), 0, getRandomFloat(30)));
-	  redBall3->set_friction(0.1f);
-	  redBall3->set_resitution(1.0f);
-
+	  
+	  
 
 	  field->set_resitution(1.0f);
 	  wall->set_resitution(1.0f);
