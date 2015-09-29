@@ -12,7 +12,12 @@ namespace octet {
 	  ref<camera_instance> the_camera;
 	  ref<scene_node> player_node;
 
-
+	  struct circle {
+		  vec3p pos;
+		  float radius;
+	  };
+	  std::vector<ref<scene_node>> redBalls;
+	  std::vector<ref<circle>> myHoles;
 	  struct my_vertex {
 		  vec3p pos;
 		  uint32_t color;
@@ -43,7 +48,7 @@ namespace octet {
 
 	  the_camera->get_node()->translate(vec3(0, 0, -35)); // Have to move the camera for it to be centered
 	  mesh_instance *mi;
-	  int CameraPosition = 3;
+	  int CameraPosition = 0;
 	  if (CameraPosition == 0) // 0 = topDown  - 1 = side - 2 = oblique - 3 = mobile
 	  {
 		  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 60, 0));
@@ -80,6 +85,7 @@ namespace octet {
 	  material *darkgreen = new material(vec4(0, 0.5f, 0, 1));
 	  material *red = new material(vec4(1, 0, 0, 1));
 	  material *blue = new material(vec4(0, 0, 1, 1));
+	  material *white = new material(vec4(1, 1, 1, 1));
       
 
 	  mat.loadIdentity();
@@ -102,7 +108,7 @@ namespace octet {
 
 	  mat.loadIdentity();
 	  mat.translate(0, 0, 0);
-	  app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), blue, true);
+	  app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), white, true);
 
 	  mat.loadIdentity();
 	  mat.translate(12, 0, -3);
@@ -115,6 +121,8 @@ namespace octet {
 	  mat.loadIdentity();
 	  mat.translate(1, 0, -8);
 	  app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true);
+
+
 
 	  generateHole(vec3(13.5f, 3.5f, 0.0f), 1.4f);
 	  generateHole(vec3(-13.5f, 3.5f, 0.0f), 1.4f);
@@ -139,6 +147,10 @@ namespace octet {
 	  scene_node *redBall2 = app_scene->get_mesh_instance(7)->get_node();
 	  scene_node *redBall3 = app_scene->get_mesh_instance(8)->get_node();
 
+	  std::vector<ref<scene_node>> redBalls = std::vector<ref<scene_node>>();
+	  redBalls.push_back(redBall1);
+	  redBalls.push_back(redBall2);
+	  redBalls.push_back(redBall3);
 
 	  ball->set_linear_velocity(vec3(getRandomFloat(30), 0, getRandomFloat(30)));
 	  ball->set_friction(0.1f);
@@ -242,6 +254,16 @@ namespace octet {
 		return rand() % max;
 	}
 
+	bool vecInsideOfCircle(vec3 position, vec3 circlePos, float circleRadius)
+	{
+		return position.x() < circlePos.x() + circleRadius &&
+			position.x() > circlePos.x() - circleRadius &&
+			position.y() < circlePos.y() + circleRadius &&
+			position.y() > circlePos.y() - circleRadius &&
+			position.z() < circlePos.z() + circleRadius &&
+			position.z() > circlePos.z() - circleRadius;
+	}
+
     /// this is called to draw the world
     void draw_world(int x, int y, int w, int h) {
       int vx = 0, vy = 0;
@@ -265,7 +287,12 @@ namespace octet {
       app_scene->render((float)vx / vy);
 	  
 
-      // tumble the box  (there is only one mesh instance)
+	  for (int i = 0; i < redBalls.size(); i++)
+	  {
+		  vec3 ballPosition = redBalls[i]->get_position();
+		  if()
+	  }
+
     }
   };
 }
