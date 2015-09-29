@@ -71,6 +71,8 @@ namespace octet {
 	  mat.translate(1, 0, -8);
 	  app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true);
 
+	  generateHole();
+
 
 	  scene_node *ground = app_scene->get_mesh_instance(0)->get_node();
 	  scene_node *wall = app_scene->get_mesh_instance(1)->get_node();
@@ -105,6 +107,15 @@ namespace octet {
 	  wall4->set_resitution(1.0f);
 
     }
+
+	void generateHole()
+	{
+		material *black = new material(vec4(0, 0, 0, 1));
+		//Add the hole to the app_scene
+		scene_node *node = new scene_node();
+		app_scene->add_child(node);
+		app_scene->add_mesh_instance(new mesh_instance(node, helix, black));
+	}
 
 	float getRandomFloat(int max)
 	{
