@@ -18,7 +18,9 @@ namespace octet {
     void app_init() {
       app_scene =  new visual_scene();
       app_scene->create_default_camera_and_lights();
-	  
+
+	  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 0, -35)); // Have to move the camera for it to be centered
+
 	  if (true) // TRUE = topDown  - FALSE = side
 	  {
 		  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 60, 0));
@@ -36,37 +38,37 @@ namespace octet {
       
 
 	  mat.loadIdentity();
-	  mat.translate(0, -1, 35);
+	  mat.translate(0, -1, 0);
 	  app_scene->add_shape(mat, new mesh_box(vec3(16, 1, 20)), green, false);
 
 
 	  mat.loadIdentity();
-	  mat.translate(15, -1, 35);
+	  mat.translate(15, -1, 0);
 	  app_scene->add_shape(mat, new mesh_box(vec3(1, 3, 21)), darkgreen, false);
 	  mat.loadIdentity();
-	  mat.translate(-15, -1, 35);
+	  mat.translate(-15, -1, 0);
 	  app_scene->add_shape(mat, new mesh_box(vec3(1, 3, 21)), darkgreen, false);
 	  mat.loadIdentity();
-	  mat.translate(0, -1, 15);
+	  mat.translate(0, -1, -20);
 	  app_scene->add_shape(mat, new mesh_box(vec3(16, 3, 1)), darkgreen, false);
 	  mat.loadIdentity();
-	  mat.translate(0, -1, 55);
+	  mat.translate(0, -1, 20);
 	  app_scene->add_shape(mat, new mesh_box(vec3(16, 3, 1)), darkgreen, false);
 
 	  mat.loadIdentity();
-	  mat.translate(0, 0, 35);
+	  mat.translate(0, 0, 0);
 	  app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), blue, true);
 
 	  mat.loadIdentity();
-	  mat.translate(12, 0, 32);
+	  mat.translate(12, 0, -3);
 	  app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true);
 
 	  mat.loadIdentity();
-	  mat.translate(5, 0, 41);
+	  mat.translate(5, 0, 6);
 	  app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true);
 
 	  mat.loadIdentity();
-	  mat.translate(1, 0, 27);
+	  mat.translate(1, 0, -8);
 	  app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true);
 
 
