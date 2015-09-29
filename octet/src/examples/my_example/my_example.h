@@ -45,7 +45,7 @@ namespace octet {
 
 	  the_camera->get_node()->translate(vec3(0, 0, -35)); // Have to move the camera for it to be centered
 	  mesh_instance *mi;
-	  int CameraPosition = 3;
+	  int CameraPosition = 0;
 	  if (CameraPosition == 0) // 0 = topDown  - 1 = side - 2 = oblique - 3 = mobile
 	  {
 		  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 60, 0));
@@ -85,6 +85,9 @@ namespace octet {
 	  material *white = new material(vec4(1, 1, 1, 1));
       
 
+	  mat.loadIdentity();
+	  mat.translate(0, -1.5f, 0);
+	  app_scene->add_shape(mat, new mesh_box(vec3(100, 1, 100)), blue, false);
 	  mat.loadIdentity();
 	  mat.translate(0, -1, 0);
 	  app_scene->add_shape(mat, new mesh_box(vec3(16, 1, 20)), green, false);
@@ -136,14 +139,15 @@ namespace octet {
 
 
 	  scene_node *ground = app_scene->get_mesh_instance(0)->get_node();
-	  scene_node *wall = app_scene->get_mesh_instance(1)->get_node();
-	  scene_node *wall2 = app_scene->get_mesh_instance(2)->get_node();
-	  scene_node *wall3 = app_scene->get_mesh_instance(3)->get_node();
-	  scene_node *wall4 = app_scene->get_mesh_instance(4)->get_node();
-	  scene_node *ball = app_scene->get_mesh_instance(5)->get_node();
-	  scene_node *redBall1 = app_scene->get_mesh_instance(6)->get_node();
-	  scene_node *redBall2 = app_scene->get_mesh_instance(7)->get_node();
-	  scene_node *redBall3 = app_scene->get_mesh_instance(8)->get_node();
+	  scene_node *field = app_scene->get_mesh_instance(1)->get_node();
+	  scene_node *wall = app_scene->get_mesh_instance(2)->get_node();
+	  scene_node *wall2 = app_scene->get_mesh_instance(3)->get_node();
+	  scene_node *wall3 = app_scene->get_mesh_instance(4)->get_node();
+	  scene_node *wall4 = app_scene->get_mesh_instance(5)->get_node();
+	  scene_node *ball = app_scene->get_mesh_instance(6)->get_node();
+	  scene_node *redBall1 = app_scene->get_mesh_instance(7)->get_node();
+	  scene_node *redBall2 = app_scene->get_mesh_instance(8)->get_node();
+	  scene_node *redBall3 = app_scene->get_mesh_instance(9)->get_node();
 
 	  redBalls = std::vector<ref<scene_node>>();
 	  redBalls.push_back(redBall1);
@@ -167,7 +171,7 @@ namespace octet {
 	  redBall3->set_resitution(1.0f);
 
 
-	  ground->set_resitution(1.0f);
+	  field->set_resitution(1.0f);
 	  wall->set_resitution(1.0f);
 	  wall2->set_resitution(1.0f);
 	  wall3->set_resitution(1.0f);
@@ -258,12 +262,11 @@ namespace octet {
 	bool vecInsideOfCircle(vec3 position, vec3 circlePos, float circleRadius, float marginOfError = 0.0f)
 	{
 		circleRadius += marginOfError;
-		bool posXP = position.x() < circlePos.x() + circleRadius;
-		bool posXM = position.x() > circlePos.x() - circleRadius;
-		bool posZP = position.z() < circlePos.z() + circleRadius;
-		bool posZM = position.z() > circlePos.z() - circleRadius;
 
-		return posXP && posXM && posZP && posZM;
+		float xMember = (position.x() - circlePos.x())*(position.x() - circlePos.x());
+		float zMember = (position.z() - circlePos.z())*(position.z() - circlePos.z());
+
+		return (xMember + zMember <= (circleRadius*circleRadius));
 	}
 
     /// this is called to draw the world
@@ -289,13 +292,15 @@ namespace octet {
       app_scene->render((float)vx / vy);
 	  
 
-	  for (int i = 0; i < redBalls.size(); i++)
+	  for (int currentBall = 0; currentBall < redBalls.size(); currentBall++)
 	  {
-		  vec3 ballPosition = redBalls[i]->get_position();
-		  for (int u = 0; u < myHoles.size(); u++)
+		  vec3 ballPosition = redBalls[currentBall]->get_position();
+		  for (int currentHole = 0; currentHole < myHoles.size(); currentHole++)
 		  {
-			  if (vecInsideOfCircle(ballPosition, myHoles[i]->get_position(), holesRadius, 0.5f))
-				  printf("1");
+			  if (vecInsideOfCircle(ballPosition, myHoles[currentHole]->get_position(), holesRadius, 0.5f)) // Delete Ball
+			  {
+				  redBalls[currentBall]->set_position(vec3(0, -10, 0));
+			  }
 		  }
 	  }
 
