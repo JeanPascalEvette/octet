@@ -51,6 +51,7 @@ namespace octet {
 
     /// this is called once OpenGL is initialized
     void app_init() {
+		enable_cursor();
       app_scene =  new visual_scene();
 	  holesRadius = 1.4f;
 	  xMousePos = -999, yMousePos = -999;
@@ -367,14 +368,13 @@ namespace octet {
 	/// this is called to handle inputs
 	void handleInputs()
 	{
-
 		
 
-		if (is_key_down(key_space) && xMousePos == -999 && yMousePos == -999)
+		if (is_key_down(key_lmb) && xMousePos == -999 && yMousePos == -999)
 		{
 			get_mouse_pos(xMousePos, yMousePos);
 		}
-		else if (!is_key_down(key_space) && xMousePos != -999 && yMousePos != -999)
+		else if (!is_key_down(key_lmb) && xMousePos != -999 && yMousePos != -999)
 		{
 			int newX, newY;
 			get_mouse_pos(newX, newY);
