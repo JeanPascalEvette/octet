@@ -133,7 +133,8 @@ namespace octet {
 	  app_scene->add_shape(mat, new mesh_box(vec3(16, 3, 1)), darkgreen, false);
 
 	  loadDataFromFile();
-	
+	  generateRay(vec3(0, 3, 0), vec3(10, 3, 10), 2);
+
 	  // Generate the 6 holes of the pool table
 	  myHoles = std::vector<ref<scene_node>>();
 	  generateHole(vec3(13.5f, 3.5f, 0.0f), holesRadius);
@@ -159,13 +160,14 @@ namespace octet {
 	  // Give random movement to the balls (This will be modified to generate velocities based on some input data later)
 	  // Also set some friction and restitution values. Those need to be modified to make it more realistic
 	  
-	  whiteBall->set_friction(0.1f);
-	  whiteBall->set_resitution(1.0f);
+	  whiteBall->set_friction(4.0f);
+	  whiteBall->set_resitution(0.75f);
 
 	  
 	  
 
 	  field->set_resitution(1.0f);
+	  field->set_friction(0.5f);
 	  wall->set_resitution(1.0f);
 	  wall2->set_resitution(1.0f);
 	  wall3->set_resitution(1.0f);
@@ -180,7 +182,7 @@ namespace octet {
 		material *red = new material(vec4(1, 0, 0, 1));
 		material *white = new material(vec4(1, 1, 1, 1));
 
-		tinyxml2::XMLDocument doc;
+		tinyxml2::XMLDocument doc;	
 		doc.LoadFile("test.xml");
 		float whiteBallLocX = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("x")->GetText());
 		float whiteBallLocY = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("y")->GetText());
@@ -215,8 +217,8 @@ namespace octet {
 			app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true);
 			scene_node *redBall = app_scene->get_mesh_instance(currentNode++)->get_node();
 			redBall->set_linear_velocity(vec3(redBallVelX, redBallVelY, redBallVelZ));
-			redBall->set_friction(0.1f);
-			redBall->set_resitution(1.0f);
+			redBall->set_friction(0.3f);
+			redBall->set_resitution(0.75f);
 			redBalls.push_back(redBall);
 			el = el->NextSibling();
 
@@ -240,7 +242,7 @@ namespace octet {
 
 		// allocate vertices and indices into OpenGL buffers
 		size_t num_vertices = num_steps * 2 + 2;
-		size_t num_indices = num_steps*6;
+		size_t num_indices = num_steps * 6;
 		hole->allocate(sizeof(my_vertex) * num_vertices, sizeof(uint32_t) * num_indices);
 		hole->set_params(sizeof(my_vertex), num_indices, num_vertices, GL_TRIANGLES, GL_UNSIGNED_INT);
 
@@ -300,6 +302,83 @@ namespace octet {
 		//Move the hole to the required location, then add it to the list of holes.
 		node->translate(position);
 		myHoles.push_back(node);
+	}
+
+
+
+	/// This function generates a black disc to be used as a hole. It is based on the helix object created on example_geometry
+	void generateRay(vec3 position1, vec3 position2, float width)
+	{
+		// use a shader that just outputs the color_ attribute.
+		param_shader *shader = new param_shader("shaders/default.vs", "shaders/simple_color.fs");
+		material *black = new material(vec4(0, 0, 0, 1), shader);
+
+
+		mesh *ray = new mesh();
+
+		// number of steps in helix
+		size_t num_steps = 160;
+
+		// allocate vertices and indices into OpenGL buffers
+		size_t num_vertices = num_steps * 2 + 2;
+		size_t num_indices = num_steps * 6;
+		ray->allocate(sizeof(my_vertex) * num_vertices, sizeof(uint32_t) * num_indices);
+		ray->set_params(sizeof(my_vertex), num_indices, num_vertices, GL_TRIANGLES, GL_UNSIGNED_INT);
+
+		// describe the structure of my_vertex to OpenGL
+		ray->add_attribute(attribute_pos, 3, GL_FLOAT, 0);
+		ray->add_attribute(attribute_color, 4, GL_UNSIGNED_BYTE, 12, GL_TRUE);
+
+
+		{
+			// these write-only locks give access to the vertices and indices.
+			// they will be released at the next } (the end of the scope)
+			gl_resource::wolock vl(ray->get_vertices());
+			my_vertex *vtx = (my_vertex *)vl.u8();
+			gl_resource::wolock il(ray->get_indices());
+			uint32_t *idx = il.u32();
+
+			vec3 step = (position1 - position2) / num_steps;
+			// make the vertices
+			for (size_t i = 0; i != num_steps + 1; ++i) {
+				float r = 0, g = 0, b = 0;
+				//float r = 0.0f, g = 1.0f * i / num_steps, b = 1.0f;
+				//float y = i * (height / num_steps) - height * 0.5f;
+				vec3 middlePoint = vec3p(position1.x() + step.x()*i, position1.y(), position1.z() + step.z()*i);
+				vec3 crossProduct = step.cross(vec3(0, 1, 0)) / (step.cross(vec3(0, 1, 0))).length();
+				vtx->pos = middlePoint + width*crossProduct;
+				vtx->color = make_color(r, g, b);
+				log("%f %f %f %08x\n", r, g, b, vtx->color);
+				vtx++;
+				vtx->pos = middlePoint - width*crossProduct;
+				vtx->color = make_color(r, g, b);
+				vtx++;
+			}
+			// make the triangles
+			uint32_t vn = 0;
+			for (size_t i = 0; i != num_steps; ++i) {
+				// 0--2
+				// | \|
+				// 1--3
+				idx[0] = vn + 0;
+				idx[1] = vn + 3;
+				idx[2] = vn + 1;
+				idx += 3;
+
+				idx[0] = vn + 0;
+				idx[1] = vn + 2;
+				idx[2] = vn + 3;
+				idx += 3;
+
+				vn += 2;
+			}
+		}
+
+
+		//Add the hole to the app_scene
+		scene_node *node = new scene_node();
+		app_scene->add_child(node);
+		app_scene->add_mesh_instance(new mesh_instance(node, ray, black));
 	}
 
 
