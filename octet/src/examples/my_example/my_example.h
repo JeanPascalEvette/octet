@@ -456,19 +456,29 @@ namespace octet {
 		}
 	}
 
+
+	vec3 convertScreenToWorld(vec3 position)
+	{
+		return vec3((position.x() * 30.0f / 450.0f) - 25.0f, 3.0f, (position.z() * 40.0f / 580.0f) - 25.5f);
+		//return vec3(position.x() / 15 - 25, 3, position.y() / 15 - 25);
+	}
+
 	/// this is called to handle inputs
 	void handleInputs()
 	{
 		eraseRay();
-
-		if (is_key_down(key_lmb) && xMousePos == -999 && yMousePos == -999)
+		int newX, newY;
+		get_mouse_pos(newX, newY);
+		vec3 mouseWorldPos = convertScreenToWorld(vec3(newX, 3, newY));
+		if (is_key_down(key_lmb))
+			printf("X: %d Y: %d\n X2: %f Y2: %f\n\n", newX, newY, mouseWorldPos.x(), mouseWorldPos.z());
+		if (is_key_down(key_lmb) && xMousePos == -999 && yMousePos == -999
+			&& vecInsideOfCircle(vec3(mouseWorldPos.x(), 3, mouseWorldPos.z()), whiteBall->get_position(), 1))
 		{
 			get_mouse_pos(xMousePos, yMousePos);
 		}
 		else if (!is_key_down(key_lmb) && xMousePos != -999 && yMousePos != -999)
 		{
-			int newX, newY;
-			get_mouse_pos(newX, newY);
 
 			vec2 dirVector = vec2(newX - xMousePos, newY - yMousePos);
 			int vectorLength = sqrt(pow(dirVector.x(),2) + pow(dirVector.y(),2));
@@ -485,12 +495,9 @@ namespace octet {
 			xMousePos = -999;
 			yMousePos = -999;
 		}
-		else if (is_key_down(key_lmb))
+		else if (is_key_down(key_lmb) && xMousePos != -999 && yMousePos != -999)
 		{
-
-			int newX, newY;
-			get_mouse_pos(newX, newY);
-			generateRay(vec3(xMousePos / 15 - 25, 3, yMousePos / 15 - 25), vec3(newX / 15 - 25, 3, newY / 15 - 25), 0.1f);
+			generateRay(convertScreenToWorld(vec3(xMousePos, 3, yMousePos)), convertScreenToWorld(vec3(newX, 3, newY)), 0.1f);
 		}
 	}
 
