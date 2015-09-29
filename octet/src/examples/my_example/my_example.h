@@ -24,6 +24,7 @@ namespace octet {
 		  MOBILE
 	  };
 
+	  ref<scene_node> whiteBall;
 	  std::vector<ref<scene_node>> redBalls;
 	  std::vector<ref<scene_node>> myHoles;
 	  float holesRadius;
@@ -132,20 +133,20 @@ namespace octet {
 
 	  tinyxml2::XMLDocument doc;
 	  doc.LoadFile("test.xml");
-	  float playerLocX = atof(doc.FirstChildElement("Data")->FirstChildElement("Player")->FirstChildElement("Location")->FirstChildElement("x")->GetText());
-	  float playerLocY = atof(doc.FirstChildElement("Data")->FirstChildElement("Player")->FirstChildElement("Location")->FirstChildElement("y")->GetText());
-	  float playerLocZ = atof(doc.FirstChildElement("Data")->FirstChildElement("Player")->FirstChildElement("Location")->FirstChildElement("z")->GetText());
+	  float whiteBallLocX = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("x")->GetText());
+	  float whiteBallLocY = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("y")->GetText());
+	  float whiteBallLocZ = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("z")->GetText());
 
-	  float playerVelX = atof(doc.FirstChildElement("Data")->FirstChildElement("Player")->FirstChildElement("Velocity")->FirstChildElement("x")->GetText());
-	  float playerVelY = atof(doc.FirstChildElement("Data")->FirstChildElement("Player")->FirstChildElement("Velocity")->FirstChildElement("y")->GetText());
-	  float playerVelZ = atof(doc.FirstChildElement("Data")->FirstChildElement("Player")->FirstChildElement("Velocity")->FirstChildElement("z")->GetText());
+	  float whiteBallVelX = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Velocity")->FirstChildElement("x")->GetText());
+	  float whiteBallVelY = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Velocity")->FirstChildElement("y")->GetText());
+	  float whiteBallVelZ = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Velocity")->FirstChildElement("z")->GetText());
 
 	  // Generate white ball (This will be modified to position the ball based on some input data later)
 	  mat.loadIdentity();
-	  mat.translate(playerLocX, playerLocY, playerLocZ);
+	  mat.translate(whiteBallLocX, whiteBallLocY, whiteBallLocZ);
 	  app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), white, true);
-	  scene_node *ball = app_scene->get_mesh_instance(6)->get_node();
-	  ball->set_linear_velocity(vec3(playerVelX, playerVelY, playerVelZ));
+	  whiteBall = app_scene->get_mesh_instance(6)->get_node();
+	  whiteBall->set_linear_velocity(vec3(whiteBallVelX, whiteBallVelY, whiteBallVelZ));
 	  int currentNode = 7;
 
 
@@ -199,8 +200,8 @@ namespace octet {
 	  // Give random movement to the balls (This will be modified to generate velocities based on some input data later)
 	  // Also set some friction and restitution values. Those need to be modified to make it more realistic
 	  
-	  ball->set_friction(0.1f);
-	  ball->set_resitution(1.0f);
+	  whiteBall->set_friction(0.1f);
+	  whiteBall->set_resitution(1.0f);
 
 	  
 	  
@@ -335,6 +336,22 @@ namespace octet {
 				++it;
 		}
 		redBalls.shrink_to_fit();
+
+
+		vec3 playerPosition = whiteBall->get_position();
+		for (it2 = myHoles.begin(); it2 != myHoles.end();)
+		{
+			if (vecInsideOfCircle(playerPosition, (*it2)->get_position(), holesRadius))
+			{
+				whiteBall->set_position(vec3(0, -10.0f, 0)); // Hides the bal until I can figure out how to properly delete it.
+				app_scene->delete_mesh_instance(whiteBall->get_mesh_instance());
+				printf("White Ball has been deleted.");
+				break;
+			}
+			else
+				++it2;
+		}
+
 	}
 
     /// this is called to draw the world
