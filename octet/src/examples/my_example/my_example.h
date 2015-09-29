@@ -29,6 +29,8 @@ namespace octet {
 	  std::vector<ref<scene_node>> myHoles;
 	  float holesRadius;
 
+	  int xMousePos, yMousePos;
+
 
 	  struct my_vertex {
 		  vec3p pos;
@@ -51,6 +53,7 @@ namespace octet {
     void app_init() {
       app_scene =  new visual_scene();
 	  holesRadius = 1.4f;
+	  xMousePos = -999, yMousePos = -999;
 	  mat4t mat;
       app_scene->create_default_camera_and_lights();
 
@@ -103,9 +106,7 @@ namespace octet {
 	  // Generate materials
 	  material *green = new material(vec4(0, 1, 0, 1));
 	  material *darkgreen = new material(vec4(0, 0.5f, 0, 1));
-	  material *red = new material(vec4(1, 0, 0, 1));
 	  material *blue = new material(vec4(0, 0, 1, 1));
-	  material *white = new material(vec4(1, 1, 1, 1));
       
 	  // Generate Ground
 	  mat.loadIdentity();
@@ -130,50 +131,7 @@ namespace octet {
 	  mat.translate(0, -1, 20);
 	  app_scene->add_shape(mat, new mesh_box(vec3(16, 3, 1)), darkgreen, false);
 
-
-	  tinyxml2::XMLDocument doc;
-	  doc.LoadFile("test.xml");
-	  float whiteBallLocX = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("x")->GetText());
-	  float whiteBallLocY = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("y")->GetText());
-	  float whiteBallLocZ = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("z")->GetText());
-
-	  float whiteBallVelX = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Velocity")->FirstChildElement("x")->GetText());
-	  float whiteBallVelY = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Velocity")->FirstChildElement("y")->GetText());
-	  float whiteBallVelZ = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Velocity")->FirstChildElement("z")->GetText());
-
-	  // Generate white ball (This will be modified to position the ball based on some input data later)
-	  mat.loadIdentity();
-	  mat.translate(whiteBallLocX, whiteBallLocY, whiteBallLocZ);
-	  app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), white, true);
-	  whiteBall = app_scene->get_mesh_instance(6)->get_node();
-	  whiteBall->set_linear_velocity(vec3(whiteBallVelX, whiteBallVelY, whiteBallVelZ));
-	  int currentNode = 7;
-
-
-	  redBalls = std::vector<ref<scene_node>>();
-	  tinyxml2::XMLNode * el = doc.FirstChildElement("Data")->FirstChildElement("ListOfRedBall")->FirstChildElement();
-	  while (el != nullptr)
-	  {
-		  float redBallLocX = atof(el->FirstChildElement("Location")->FirstChildElement("x")->GetText());
-		  float redBallLocY = atof(el->FirstChildElement("Location")->FirstChildElement("y")->GetText());
-		  float redBallLocZ = atof(el->FirstChildElement("Location")->FirstChildElement("z")->GetText());
-
-		  float redBallVelX = atof(el->FirstChildElement("Velocity")->FirstChildElement("x")->GetText());
-		  float redBallVelY = atof(el->FirstChildElement("Velocity")->FirstChildElement("y")->GetText());
-		  float redBallVelZ = atof(el->FirstChildElement("Velocity")->FirstChildElement("z")->GetText());
-		  mat.loadIdentity();
-		  mat.translate(redBallLocX, redBallLocY, redBallLocZ);
-		  app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true);
-		  scene_node *redBall = app_scene->get_mesh_instance(currentNode++)->get_node();
-		  redBall->set_linear_velocity(vec3(redBallVelX, redBallVelY, redBallVelZ));
-		  redBall->set_friction(0.1f);
-		  redBall->set_resitution(1.0f);
-		  redBalls.push_back(redBall);
-		  el = el->NextSibling();
-
-	  }
-
-
+	  loadDataFromFile();
 	
 	  // Generate the 6 holes of the pool table
 	  myHoles = std::vector<ref<scene_node>>();
@@ -213,6 +171,58 @@ namespace octet {
 	  wall4->set_resitution(1.0f);
 
     }
+
+
+	void loadDataFromFile()
+	{
+		mat4t mat;
+		material *red = new material(vec4(1, 0, 0, 1));
+		material *white = new material(vec4(1, 1, 1, 1));
+
+		tinyxml2::XMLDocument doc;
+		doc.LoadFile("test.xml");
+		float whiteBallLocX = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("x")->GetText());
+		float whiteBallLocY = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("y")->GetText());
+		float whiteBallLocZ = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("z")->GetText());
+
+		float whiteBallVelX = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Velocity")->FirstChildElement("x")->GetText());
+		float whiteBallVelY = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Velocity")->FirstChildElement("y")->GetText());
+		float whiteBallVelZ = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Velocity")->FirstChildElement("z")->GetText());
+
+		// Generate white ball (This will be modified to position the ball based on some input data later)
+		mat.loadIdentity();
+		mat.translate(whiteBallLocX, whiteBallLocY, whiteBallLocZ);
+		app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), white, true);
+		whiteBall = app_scene->get_mesh_instance(6)->get_node();
+		whiteBall->set_linear_velocity(vec3(whiteBallVelX, whiteBallVelY, whiteBallVelZ));
+		int currentNode = 7;
+
+
+		redBalls = std::vector<ref<scene_node>>();
+		tinyxml2::XMLNode * el = doc.FirstChildElement("Data")->FirstChildElement("ListOfRedBall")->FirstChildElement();
+		while (el != nullptr)
+		{
+			float redBallLocX = atof(el->FirstChildElement("Location")->FirstChildElement("x")->GetText());
+			float redBallLocY = atof(el->FirstChildElement("Location")->FirstChildElement("y")->GetText());
+			float redBallLocZ = atof(el->FirstChildElement("Location")->FirstChildElement("z")->GetText());
+
+			float redBallVelX = atof(el->FirstChildElement("Velocity")->FirstChildElement("x")->GetText());
+			float redBallVelY = atof(el->FirstChildElement("Velocity")->FirstChildElement("y")->GetText());
+			float redBallVelZ = atof(el->FirstChildElement("Velocity")->FirstChildElement("z")->GetText());
+			mat.loadIdentity();
+			mat.translate(redBallLocX, redBallLocY, redBallLocZ);
+			app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true);
+			scene_node *redBall = app_scene->get_mesh_instance(currentNode++)->get_node();
+			redBall->set_linear_velocity(vec3(redBallVelX, redBallVelY, redBallVelZ));
+			redBall->set_friction(0.1f);
+			redBall->set_resitution(1.0f);
+			redBalls.push_back(redBall);
+			el = el->NextSibling();
+
+		}
+
+
+	}
 
 	/// This function generates a black disc to be used as a hole. It is based on the helix object created on example_geometry
 	void generateHole(vec3 position, float radius)
@@ -320,7 +330,7 @@ namespace octet {
 			vec3 ballPosition = (*it)->get_position();
 			for (it2 = myHoles.begin(); it2 != myHoles.end();)
 			{
-				if (vecInsideOfCircle(ballPosition, (*it2)->get_position(), holesRadius))
+				if (vecInsideOfCircle(ballPosition, (*it2)->get_position(), holesRadius, -0.5f))
 				{
 					(*it)->set_position(vec3(0, -10.0f, 0)); // Hides the bal until I can figure out how to properly delete it.
 					app_scene->delete_mesh_instance((*it)->get_mesh_instance());
@@ -358,6 +368,24 @@ namespace octet {
 	void handleInputs()
 	{
 
+		if (is_key_down(key_space) && xMousePos == -999 && yMousePos == -999)
+		{
+			get_mouse_pos(xMousePos, yMousePos);
+		}
+		else if (!is_key_down(key_space) && xMousePos != -999 && yMousePos != -999)
+		{
+			int newX, newY;
+			get_mouse_pos(newX, newY);
+
+			vec3 dirVector = vec3(newX - xMousePos, 0, newY - yMousePos);
+			int vectorLength = sqrt(pow(dirVector.x(),2) + pow(dirVector.y(),2));
+			vec3 unitVector = dirVector / vectorLength;
+
+			whiteBall->set_linear_velocity(-unitVector*3);
+
+			xMousePos = -999;
+			yMousePos = -999;
+		}
 	}
 
     /// this is called to draw the world
