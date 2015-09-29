@@ -7,6 +7,12 @@
 namespace octet {
   /// Scene containing a box with octet.
   class my_example : public app {
+	  mouse_look mouse_look_helper;
+	  helper_fps_controller fps_helper;
+	  ref<camera_instance> the_camera;
+	  ref<scene_node> player_node;
+
+
 	  struct my_vertex {
 		  vec3p pos;
 		  uint32_t color;
@@ -25,12 +31,20 @@ namespace octet {
     /// this is called once OpenGL is initialized
     void app_init() {
       app_scene =  new visual_scene();
+
+	  mat4t mat;
       app_scene->create_default_camera_and_lights();
 
-	  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 0, -35)); // Have to move the camera for it to be centered
+	  mouse_look_helper.init(this, 200.0f / 360.0f, false);
+	  fps_helper.init(this);
+	  the_camera = app_scene->get_camera_instance(0);
+	  the_camera->set_far_plane(10000);
 
-	  int CameraPosition = 2;
-	  if (CameraPosition == 0) // 0 = topDown  - 1 = side - 2 = oblique
+
+	  the_camera->get_node()->translate(vec3(0, 0, -35)); // Have to move the camera for it to be centered
+	  mesh_instance *mi;
+	  int CameraPosition = 3;
+	  if (CameraPosition == 0) // 0 = topDown  - 1 = side - 2 = oblique - 3 = mobile
 	  {
 		  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 60, 0));
 		  app_scene->get_camera_instance(0)->get_node()->rotate(-90, vec3(1, 0, 0));
@@ -45,7 +59,23 @@ namespace octet {
 		  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 30, 0));
 		  app_scene->get_camera_instance(0)->get_node()->rotate(-45, vec3(1, 0, 0));
 	  }
-	  mat4t mat;
+	  else if (CameraPosition == 3)
+	  {
+		  float player_height = 1.83f;
+		  float player_radius = 0.0f;
+		  float player_mass = 90.0f;
+
+		  mat.loadIdentity();
+		  mat.translate(0, player_height*0.5f, 15);
+
+		   mi = app_scene->add_shape(
+			  mat,
+			  new mesh_sphere(vec3(0), player_radius),
+			  new material(vec4(0, 0, 1, 1)),
+			  true, player_mass,
+			  new btCapsuleShape(0.25f, player_height)
+			  );
+	  }
 	  material *green = new material(vec4(0, 1, 0, 1));
 	  material *darkgreen = new material(vec4(0, 0.5f, 0, 1));
 	  material *red = new material(vec4(1, 0, 0, 1));
@@ -87,6 +117,11 @@ namespace octet {
 	  app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true);
 
 	  generateHole();
+
+
+
+	  if (CameraPosition == 3)
+		player_node = mi->get_node();
 
 
 	  scene_node *ground = app_scene->get_mesh_instance(0)->get_node();
@@ -207,6 +242,14 @@ namespace octet {
       int vx = 0, vy = 0;
       get_viewport_size(vx, vy);
       app_scene->begin_render(vx, vy);
+
+	  if (player_node)
+	  {
+		  scene_node *camera_node = the_camera->get_node();
+		  mat4t &camera_to_world = camera_node->access_nodeToParent();
+		  mouse_look_helper.update(camera_to_world);
+		  fps_helper.update(player_node, camera_node);
+	  }
 
       // update matrices. assume 30 fps.
       app_scene->update(1.0f/30);
