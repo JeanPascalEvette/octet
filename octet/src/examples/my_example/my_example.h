@@ -297,12 +297,27 @@ namespace octet {
 		  vec3 ballPosition = redBalls[currentBall]->get_position();
 		  for (int currentHole = 0; currentHole < myHoles.size(); currentHole++)
 		  {
-			  if (vecInsideOfCircle(ballPosition, myHoles[currentHole]->get_position(), holesRadius, 0.5f)) // Delete Ball
+			  if (vecInsideOfCircle(ballPosition, myHoles[currentHole]->get_position(), holesRadius)) // Delete Ball
 			  {
 				  redBalls[currentBall]->set_position(vec3(0, -10, 0));
 			  }
 		  }
 	  }
+
+	  std::vector<ref<scene_node>>::iterator it;
+	  for (it = redBalls.begin(); it != redBalls.end();)
+	  {
+		  if ((*it)->get_position().y() < -5)
+		  {
+			  app_scene->delete_mesh_instance((*it)->get_mesh_instance());
+			  it = redBalls.erase(it);
+		  }
+		  else
+		  {
+			  ++it;
+		  }
+	  }
+	  redBalls.shrink_to_fit();
 
     }
   };
