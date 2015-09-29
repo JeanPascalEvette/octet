@@ -7,18 +7,30 @@
 namespace octet {
   /// Scene containing a box with octet.
   class my_example : public app {
+
+	  // Variables used for the mobile camera
 	  mouse_look mouse_look_helper;
 	  helper_fps_controller fps_helper;
 	  ref<camera_instance> the_camera;
 	  ref<scene_node> player_node;
+	  enum CameraType {
+		  TOPDOWN,
+		  SIDEWAYS,
+		  OBLIQUE,
+		  MOBILE
+	  };
 
 	  std::vector<ref<scene_node>> redBalls;
 	  std::vector<ref<scene_node>> myHoles;
 	  float holesRadius;
+
+
 	  struct my_vertex {
 		  vec3p pos;
 		  uint32_t color;
 	  };
+	  
+
     // scene for drawing box
     ref<visual_scene> app_scene; 
 	// this function converts three floats into a RGBA 8 bit color
@@ -37,31 +49,33 @@ namespace octet {
 	  mat4t mat;
       app_scene->create_default_camera_and_lights();
 
+	  // Setup camera - make sure it is ready if mobile mode is enabled
 	  mouse_look_helper.init(this, 200.0f / 360.0f, false);
 	  fps_helper.init(this);
 	  the_camera = app_scene->get_camera_instance(0);
 	  the_camera->set_far_plane(10000);
-
-
 	  the_camera->get_node()->translate(vec3(0, 0, -35)); // Have to move the camera for it to be centered
 	  mesh_instance *mi;
-	  int CameraPosition = 0;
-	  if (CameraPosition == 0) // 0 = topDown  - 1 = side - 2 = oblique - 3 = mobile
+
+
+	  // Set the camera depending on camera type
+	  CameraType CameraPosition = CameraType::TOPDOWN;
+	  if (CameraPosition == CameraType::TOPDOWN)
 	  {
 		  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 60, 0));
 		  app_scene->get_camera_instance(0)->get_node()->rotate(-90, vec3(1, 0, 0));
 	  }
-	  else if (CameraPosition == 1)
+	  else if (CameraPosition == CameraType::SIDEWAYS)
 	  {
 		  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 0, 50));
 	  }
-	  else if (CameraPosition == 2)
+	  else if (CameraPosition == CameraType::OBLIQUE)
 	  {
 		  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 0, 50));
 		  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 30, 0));
 		  app_scene->get_camera_instance(0)->get_node()->rotate(-45, vec3(1, 0, 0));
 	  }
-	  else if (CameraPosition == 3)
+	  else if (CameraPosition == CameraType::MOBILE)
 	  {
 		  float player_height = 1.83f;
 		  float player_radius = 0.0f;
@@ -77,22 +91,27 @@ namespace octet {
 			  true, player_mass,
 			  new btCapsuleShape(0.25f, player_height)
 			  );
+		   player_node = mi->get_node();
 	  }
+
+
+	  // Generate materials
 	  material *green = new material(vec4(0, 1, 0, 1));
 	  material *darkgreen = new material(vec4(0, 0.5f, 0, 1));
 	  material *red = new material(vec4(1, 0, 0, 1));
 	  material *blue = new material(vec4(0, 0, 1, 1));
 	  material *white = new material(vec4(1, 1, 1, 1));
       
-
+	  // Generate Ground
 	  mat.loadIdentity();
 	  mat.translate(0, -1.5f, 0);
 	  app_scene->add_shape(mat, new mesh_box(vec3(100, 1, 100)), blue, false);
+	  // Generate field
 	  mat.loadIdentity();
 	  mat.translate(0, -1, 0);
 	  app_scene->add_shape(mat, new mesh_box(vec3(16, 1, 20)), green, false);
 
-
+	  // Generate 4 Walls of pool table
 	  mat.loadIdentity();
 	  mat.translate(15, -1, 0);
 	  app_scene->add_shape(mat, new mesh_box(vec3(1, 3, 21)), darkgreen, false);
@@ -106,24 +125,24 @@ namespace octet {
 	  mat.translate(0, -1, 20);
 	  app_scene->add_shape(mat, new mesh_box(vec3(16, 3, 1)), darkgreen, false);
 
+	  // Generate white ball (This will be modified to position the ball based on some input data later)
 	  mat.loadIdentity();
 	  mat.translate(0, 0, 0);
 	  app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), white, true);
 
+	  // Generate a few red balls (This will be modified to generate balls based on some input data later) 
 	  mat.loadIdentity();
 	  mat.translate(12, 0, -3);
 	  app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true);
-
 	  mat.loadIdentity();
 	  mat.translate(5, 0, 6);
 	  app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true);
-
 	  mat.loadIdentity();
 	  mat.translate(1, 0, -8);
 	  app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true);
 
 
-
+	  // Generate the 6 holes of the pool table
 	  myHoles = std::vector<ref<scene_node>>();
 	  generateHole(vec3(13.5f, 3.5f, 0.0f), holesRadius);
 	  generateHole(vec3(-13.5f, 3.5f, 0.0f), holesRadius);
@@ -133,11 +152,7 @@ namespace octet {
 	  generateHole(vec3(-13.0f, 3.5f, -18.0f), holesRadius);
 
 
-
-	  if (CameraPosition == 3)
-		player_node = mi->get_node();
-
-
+	  // Create scene_nodes corresponding to the meshes created
 	  scene_node *ground = app_scene->get_mesh_instance(0)->get_node();
 	  scene_node *field = app_scene->get_mesh_instance(1)->get_node();
 	  scene_node *wall = app_scene->get_mesh_instance(2)->get_node();
@@ -149,13 +164,17 @@ namespace octet {
 	  scene_node *redBall2 = app_scene->get_mesh_instance(8)->get_node();
 	  scene_node *redBall3 = app_scene->get_mesh_instance(9)->get_node();
 
+	  // Store red balls in container
 	  redBalls = std::vector<ref<scene_node>>();
 	  redBalls.push_back(redBall1);
 	  redBalls.push_back(redBall2);
 	  redBalls.push_back(redBall3);
+	  // If mobile camera is enabled, store player as a red ball.
 	  if (CameraPosition == 3)
 		  redBalls.push_back(player_node);
 
+	  // Give random movement to the balls (This will be modified to generate velocities based on some input data later)
+	  // Also set some friction and restitution values. Those need to be modified to make it more realistic
 	  ball->set_linear_velocity(vec3(getRandomFloat(30), 0, getRandomFloat(30)));
 	  ball->set_friction(0.1f);
 	  ball->set_resitution(1.0f);
@@ -179,9 +198,9 @@ namespace octet {
 
     }
 
+	/// This function generates a black disc to be used as a hole. It is based on the helix object created on example_geometry
 	void generateHole(vec3 position, float radius)
 	{
-		//Based on example_geometry's helix
 		// use a shader that just outputs the color_ attribute.
 		param_shader *shader = new param_shader("shaders/default.vs", "shaders/simple_color.fs");
 		material *black = new material(vec4(0, 0, 0, 1), shader);
@@ -250,15 +269,20 @@ namespace octet {
 		scene_node *node = new scene_node();
 		app_scene->add_child(node);
 		app_scene->add_mesh_instance(new mesh_instance(node, hole, black));
+
+		//Move the hole to the required location, then add it to the list of holes.
 		node->translate(position);
 		myHoles.push_back(node);
 	}
 
+
+	/// Helper function. a bit cleaner to read.
 	float getRandomFloat(int max)
 	{
 		return rand() % max;
 	}
 
+	/// This function takes a position and a circle's position and radius, and returns whether or not the first position is inside the circle.
 	bool vecInsideOfCircle(vec3 position, vec3 circlePos, float circleRadius, float marginOfError = 0.0f)
 	{
 		circleRadius += marginOfError;
@@ -269,12 +293,41 @@ namespace octet {
 		return (xMember + zMember <= (circleRadius*circleRadius));
 	}
 
+	/// This function checks whether any ball is in a pocket and removes in from play if that is the case.
+	void checkIfBallIsInPocket()
+	{
+		std::vector<ref<scene_node>>::iterator it;
+		std::vector<ref<scene_node>>::iterator it2;
+		for (it = redBalls.begin(); it != redBalls.end();)
+		{
+			bool hasBallBeenDeleted = false;
+			vec3 ballPosition = (*it)->get_position();
+			for (it2 = myHoles.begin(); it2 != myHoles.end();)
+			{
+				if (vecInsideOfCircle(ballPosition, (*it2)->get_position(), holesRadius))
+				{
+					app_scene->delete_mesh_instance((*it)->get_mesh_instance());
+					it = redBalls.erase(it);
+					hasBallBeenDeleted = true;
+					printf("Ball has been deleted.");
+					break;
+				}
+				else
+					++it2;
+			}
+			if(!hasBallBeenDeleted)
+				++it;
+		}
+		redBalls.shrink_to_fit();
+	}
+
     /// this is called to draw the world
     void draw_world(int x, int y, int w, int h) {
       int vx = 0, vy = 0;
       get_viewport_size(vx, vy);
       app_scene->begin_render(vx, vy);
 
+	  // Player_node is only initialized when on MOBILE camera type
 	  if (player_node)
 	  {
 		  scene_node *camera_node = the_camera->get_node();
@@ -292,32 +345,8 @@ namespace octet {
       app_scene->render((float)vx / vy);
 	  
 
-	  for (int currentBall = 0; currentBall < redBalls.size(); currentBall++)
-	  {
-		  vec3 ballPosition = redBalls[currentBall]->get_position();
-		  for (int currentHole = 0; currentHole < myHoles.size(); currentHole++)
-		  {
-			  if (vecInsideOfCircle(ballPosition, myHoles[currentHole]->get_position(), holesRadius)) // Delete Ball
-			  {
-				  redBalls[currentBall]->set_position(vec3(0, -10, 0));
-			  }
-		  }
-	  }
-
-	  std::vector<ref<scene_node>>::iterator it;
-	  for (it = redBalls.begin(); it != redBalls.end();)
-	  {
-		  if ((*it)->get_position().y() < -5)
-		  {
-			  app_scene->delete_mesh_instance((*it)->get_mesh_instance());
-			  it = redBalls.erase(it);
-		  }
-		  else
-		  {
-			  ++it;
-		  }
-	  }
-	  redBalls.shrink_to_fit();
+	  // handle balls in pockets
+	  checkIfBallIsInPocket();
 
     }
   };
