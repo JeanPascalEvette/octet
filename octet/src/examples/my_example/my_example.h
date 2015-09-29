@@ -25,6 +25,7 @@ namespace octet {
 	  };
 
 	  ref<scene_node> whiteBall;
+	  ref<scene_node> rayDrag;
 	  std::vector<ref<scene_node>> redBalls;
 	  std::vector<ref<scene_node>> myHoles;
 	  float holesRadius;
@@ -133,7 +134,6 @@ namespace octet {
 	  app_scene->add_shape(mat, new mesh_box(vec3(16, 3, 1)), darkgreen, false);
 
 	  loadDataFromFile();
-	  generateRay(vec3(0, 3, 0), vec3(10, 3, 10), 2);
 
 	  // Generate the 6 holes of the pool table
 	  myHoles = std::vector<ref<scene_node>>();
@@ -153,9 +153,7 @@ namespace octet {
 	  scene_node *wall3 = app_scene->get_mesh_instance(4)->get_node();
 	  scene_node *wall4 = app_scene->get_mesh_instance(5)->get_node();
 
-	  // If mobile camera is enabled, store player as a red ball.
-	  if (CameraPosition == 3)
-		  redBalls.push_back(player_node);
+
 
 	  // Give random movement to the balls (This will be modified to generate velocities based on some input data later)
 	  // Also set some friction and restitution values. Those need to be modified to make it more realistic
@@ -338,7 +336,7 @@ namespace octet {
 			gl_resource::wolock il(ray->get_indices());
 			uint32_t *idx = il.u32();
 
-			vec3 step = (position1 - position2) / num_steps;
+			vec3 step = (position2 - position1) / num_steps;
 			// make the vertices
 			for (size_t i = 0; i != num_steps + 1; ++i) {
 				float r = 0, g = 0, b = 0;
@@ -377,8 +375,20 @@ namespace octet {
 
 		//Add the hole to the app_scene
 		scene_node *node = new scene_node();
+		rayDrag = node;
 		app_scene->add_child(node);
 		app_scene->add_mesh_instance(new mesh_instance(node, ray, black));
+	}
+
+
+	/// this is called to remove the ray
+	void eraseRay()
+	{
+		if (rayDrag)
+		{
+			app_scene->delete_mesh_instance(app_scene->get_first_mesh_instance(rayDrag));
+			rayDrag.~ref();
+		}
 	}
 
 
@@ -412,8 +422,8 @@ namespace octet {
 			{
 				if (vecInsideOfCircle(ballPosition, (*it2)->get_position(), holesRadius, -0.5f))
 				{
-					(*it)->set_position(vec3(0, -10.0f, 0)); // Hides the bal until I can figure out how to properly delete it.
-					app_scene->delete_mesh_instance((*it)->get_mesh_instance());
+					//(*it)->set_position(vec3(0, -10.0f, 0)); // Hides the bal until I can figure out how to properly delete it.
+					app_scene->delete_mesh_instance(app_scene->get_first_mesh_instance((*it)));
 					it = redBalls.erase(it);
 					hasBallBeenDeleted = true;
 					printf("Ball has been deleted.");
@@ -427,27 +437,29 @@ namespace octet {
 		}
 		redBalls.shrink_to_fit();
 
-
-		vec3 playerPosition = whiteBall->get_position();
-		for (it2 = myHoles.begin(); it2 != myHoles.end();)
+		if(whiteBall)
 		{
-			if (vecInsideOfCircle(playerPosition, (*it2)->get_position(), holesRadius))
+			vec3 playerPosition = whiteBall->get_position();
+			for (it2 = myHoles.begin(); it2 != myHoles.end();)
 			{
-				whiteBall->set_position(vec3(0, -10.0f, 0)); // Hides the ball until I can figure out how to properly delete it.
-				app_scene->delete_mesh_instance(whiteBall->get_mesh_instance());
-				printf("White Ball has been deleted.");
-				break;
+				if (vecInsideOfCircle(playerPosition, (*it2)->get_position(), holesRadius))
+				{
+					//whiteBall->set_position(vec3(0, -10.0f, 0)); // Hides the ball until I can figure out how to properly delete it.
+					app_scene->delete_mesh_instance(app_scene->get_first_mesh_instance(whiteBall));
+					whiteBall.~ref();
+					printf("White Ball has been deleted.");
+					break;
+				}
+				else
+					++it2;
 			}
-			else
-				++it2;
 		}
-
 	}
 
 	/// this is called to handle inputs
 	void handleInputs()
 	{
-		
+		eraseRay();
 
 		if (is_key_down(key_lmb) && xMousePos == -999 && yMousePos == -999)
 		{
@@ -467,10 +479,18 @@ namespace octet {
 			else
 				vectorLength /= 10;
 
+			if (whiteBall)
 			whiteBall->set_linear_velocity(-1*vec3(unitVector.x(), 0 , unitVector.y()) * vectorLength);
 
 			xMousePos = -999;
 			yMousePos = -999;
+		}
+		else if (is_key_down(key_lmb))
+		{
+
+			int newX, newY;
+			get_mouse_pos(newX, newY);
+			generateRay(vec3(xMousePos / 15 - 25, 3, yMousePos / 15 - 25), vec3(newX / 15 - 25, 3, newY / 15 - 25), 0.1f);
 		}
 	}
 

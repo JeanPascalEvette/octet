@@ -462,6 +462,15 @@ namespace octet { namespace scene {
     }
 
     void delete_mesh_instance(mesh_instance *inst) {
+		for (int i = 0; i < mesh_instances.size(); i++)
+		{
+			if (mesh_instances[i] == inst)
+			{
+				for (int u = i + 1; u < mesh_instances.size(); u++)
+					mesh_instances[i++] = mesh_instances[u];
+				mesh_instances.resize(mesh_instances.size() - 1);
+			}
+		}
       //mesh_instances.erase_by_value(inst);
     }
 
