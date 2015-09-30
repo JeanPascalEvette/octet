@@ -30,10 +30,15 @@ namespace octet {
       mat4t mat;
       mat.translate(-3, 6, 0);
       app_scene->add_shape(mat, new mesh_sphere(vec3(2, 2, 2), 2), red, true);
+	  scene_node* sphere = app_scene->get_mesh_instance(0)->get_scene_node();
 
       mat.loadIdentity();
       mat.translate(0, 10, 0);
       app_scene->add_shape(mat, new mesh_box(vec3(2, 2, 2)), red, true);
+	  scene_node* box = app_scene->get_mesh_instance(1)->get_scene_node();
+
+
+	  btHingeConstraint* hinge = new btHingeConstraint(*(sphere->get_rigid_body()), *(box->get_rigid_body()), btVector3(-3, 6, 0), btVector3(0, 10, 0), btVector3(0, 1, 0), btVector3(0, 1, 0));
 
       mat.loadIdentity();
       mat.translate( 3, 6, 0);

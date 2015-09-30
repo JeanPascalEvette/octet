@@ -113,25 +113,25 @@ namespace octet {
 	  // Generate Ground
 	  mat.loadIdentity();
 	  mat.translate(0, -1.5f, 0);
-	  app_scene->add_shape(mat, new mesh_box(vec3(100, 1, 100)), blue, false);
+	  app_scene->add_shape(mat, new mesh_box(vec3(100.0f, 1.0f, 100.0f)), blue, false);
 	  // Generate field
 	  mat.loadIdentity();
 	  mat.translate(0, -1, 0);
-	  app_scene->add_shape(mat, new mesh_box(vec3(16, 1, 20)), green, false);
+	  app_scene->add_shape(mat, new mesh_box(vec3(16.0f, 1.0f, 20.0f)), green, false);
 
 	  // Generate 4 Walls of pool table
 	  mat.loadIdentity();
 	  mat.translate(15, -1, 0);
-	  app_scene->add_shape(mat, new mesh_box(vec3(1, 3, 21)), darkgreen, false);
+	  app_scene->add_shape(mat, new mesh_box(vec3(1.0f, 3.5f, 21.0f)), darkgreen, false);
 	  mat.loadIdentity();
 	  mat.translate(-15, -1, 0);
-	  app_scene->add_shape(mat, new mesh_box(vec3(1, 3, 21)), darkgreen, false);
+	  app_scene->add_shape(mat, new mesh_box(vec3(1.0f, 3.5f, 21.0f)), darkgreen, false);
 	  mat.loadIdentity();
 	  mat.translate(0, -1, -20);
-	  app_scene->add_shape(mat, new mesh_box(vec3(16, 3, 1)), darkgreen, false);
+	  app_scene->add_shape(mat, new mesh_box(vec3(16.0f, 3.5f, 1.0f)), darkgreen, false);
 	  mat.loadIdentity();
 	  mat.translate(0, -1, 20);
-	  app_scene->add_shape(mat, new mesh_box(vec3(16, 3, 1)), darkgreen, false);
+	  app_scene->add_shape(mat, new mesh_box(vec3(16.0f, 3.5f, 1.0f)), darkgreen, false);
 
 	  loadDataFromFile();
 
@@ -395,7 +395,7 @@ namespace octet {
 	/// Helper function. a bit cleaner to read.
 	float getRandomFloat(int max)
 	{
-		return rand() % max;
+		return float(rand() % max);
 	}
 
 	/// This function takes a position and a circle's position and radius, and returns whether or not the first position is inside the circle.
