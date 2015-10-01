@@ -18,27 +18,114 @@ namespace octet {
     }
 
     /// this is called once OpenGL is initialized
-    void app_init() {
-      app_scene =  new visual_scene();
-      app_scene->create_default_camera_and_lights();
-      app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 4, 0));
+	void app_init() {
+		app_scene = new visual_scene();
+		app_scene->create_default_camera_and_lights();
+		app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 4, 0));
 
-      material *red = new material(vec4(1, 0, 0, 1));
-      material *green = new material(vec4(0, 1, 0, 1));
-      material *blue = new material(vec4(0, 0, 1, 1));
+		material *red = new material(vec4(1, 0, 0, 1));
+		material *green = new material(vec4(0, 1, 0, 1));
+		material *blue = new material(vec4(0, 0, 1, 1));
 
-      mat4t mat;
-      mat.translate(-3, 6, 0);
-      app_scene->add_shape(mat, new mesh_sphere(vec3(2, 2, 2), 2), red, true);
-	  scene_node* sphere = app_scene->get_mesh_instance(0)->get_scene_node();
+		mat4t mat;
+		mat.loadIdentity();
+		mat.translate(-3, 6, 0);
+		//app_scene->add_shape(mat, new mesh_sphere(vec3(2, 2, 2), 2), red, true);
+		//scene_node* sphere = app_scene->get_mesh_instance(0)->get_scene_node();
 
-      mat.loadIdentity();
-      mat.translate(0, 10, 0);
-      app_scene->add_shape(mat, new mesh_box(vec3(2, 2, 2)), red, true);
-	  scene_node* box = app_scene->get_mesh_instance(1)->get_scene_node();
+		btRigidBody* rigid_body;
+		btRigidBody* rigid_body2;
+		{
+		float mass = 1.0f;
+		bool is_dynamic = true;
+		btDiscreteDynamicsWorld* world = app_scene->get_world();
+		btCollisionShape* shape = NULL;
+		scene_node *node = new scene_node(app_scene);
+		node->access_nodeToParent() = mat;
+
+		mesh* msh = new mesh_sphere(vec3(2, 2, 2), 2);
+		mesh_instance *result = NULL;
+		if (msh && blue) {
+			result = new mesh_instance(node, msh, blue);
+			app_scene->add_mesh_instance(result);
+		}
+
+		btMatrix3x3 matrix(get_btMatrix3x3(mat));
+		btVector3 pos(get_btVector3(mat[3].xyz()));
+
+		if (shape == NULL) {
+			shape = is_dynamic ? msh->get_bullet_shape() : msh->get_static_bullet_shape();
+		}
+
+		if (shape) {
+			btTransform transform(matrix, pos);
+
+			btDefaultMotionState *motionState = new btDefaultMotionState(transform);
+			btVector3 inertiaTensor;
+
+			if (!is_dynamic) mass = 0;
+
+			if (is_dynamic) shape->calculateLocalInertia(mass, inertiaTensor);
+
+			rigid_body = new btRigidBody(mass, motionState, shape, inertiaTensor);
+			world->addRigidBody(rigid_body);
+			rigid_body->setUserPointer(node);
+			node->set_rigid_body(rigid_body);
+		}
 
 
-	  btHingeConstraint* hinge = new btHingeConstraint(*(sphere->get_rigid_body()), *(box->get_rigid_body()), btVector3(-3, 6, 0), btVector3(0, 10, 0), btVector3(0, 1, 0), btVector3(0, 1, 0));
+	}
+
+
+	  mat.loadIdentity();
+	  mat.translate(0, 15, 0);
+
+	  {
+		  float mass = 1.0f;
+		  bool is_dynamic = true;
+		  btDiscreteDynamicsWorld* world = app_scene->get_world();
+		  btCollisionShape* shape = NULL;
+		  scene_node *node = new scene_node(app_scene);
+		  node->access_nodeToParent() = mat;
+
+		  mesh* msh = new mesh_box(vec3(2, 2, 2));
+		  mesh_instance *result = NULL;
+		  if (msh && blue) {
+			  result = new mesh_instance(node, msh, red);
+			  app_scene->add_mesh_instance(result);
+		  }
+
+		  btMatrix3x3 matrix(get_btMatrix3x3(mat));
+		  btVector3 pos(get_btVector3(mat[3].xyz()));
+
+		  if (shape == NULL) {
+			  shape = is_dynamic ? msh->get_bullet_shape() : msh->get_static_bullet_shape();
+		  }
+
+		  if (shape) {
+			  btTransform transform(matrix, pos);
+
+			  btDefaultMotionState *motionState = new btDefaultMotionState(transform);
+			  btVector3 inertiaTensor;
+
+			  if (!is_dynamic) mass = 0;
+
+			  if (is_dynamic) shape->calculateLocalInertia(mass, inertiaTensor);
+
+			  rigid_body2 = new btRigidBody(mass, motionState, shape, inertiaTensor);
+			  world->addRigidBody(rigid_body2);
+			  rigid_body2->setUserPointer(node);
+			  node->set_rigid_body(rigid_body2);
+		  }
+	  }
+
+	  btHingeConstraint* hinge = new btHingeConstraint(*rigid_body, *rigid_body2, btVector3(-3, 6, 0), btVector3(0, 15, 0), btVector3(1, 0, 0), btVector3(1, 0, 0));
+	  hinge->setLimit(0, 0);//-SIMD_HALF_PI * 0.5f, SIMD_HALF_PI * 0.5f);
+
+
+	  //app_scene->add_shape(mat, new mesh_box(vec3(2, 2, 2)), red, true);
+	  //scene_node* box = app_scene->get_mesh_instance(1)->get_scene_node();
+
 
       mat.loadIdentity();
       mat.translate( 3, 6, 0);

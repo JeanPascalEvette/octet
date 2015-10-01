@@ -58,6 +58,8 @@ namespace octet { namespace scene {
       typedef void collison_shape_t;
     #endif
 
+	  
+
     void draw_aabb(const aabb &bb) {
       vec3 pos[8];
       vec3 center = bb.get_center();
@@ -296,6 +298,10 @@ namespace octet { namespace scene {
       #endif
     }
 
+	btDiscreteDynamicsWorld* get_world()
+	{
+		return world;
+	}
     /// helper to add a mesh to a scene and also to create the corresponding physics object
     mesh_instance *add_shape(mat4t_in mat, mesh *msh, material *mtl, bool is_dynamic=false, float mass=1, collison_shape_t *shape=NULL) {
       scene_node *node = new scene_node(this);
