@@ -35,10 +35,10 @@ namespace octet {
 
 		btRigidBody* rigid_body;
 		btRigidBody* rigid_body2;
+		btDiscreteDynamicsWorld* world = app_scene->get_world();
 		{
 		float mass = 1.0f;
 		bool is_dynamic = true;
-		btDiscreteDynamicsWorld* world = app_scene->get_world();
 		btCollisionShape* shape = NULL;
 		scene_node *node = new scene_node(app_scene);
 		node->access_nodeToParent() = mat;
@@ -83,7 +83,6 @@ namespace octet {
 	  {
 		  float mass = 1.0f;
 		  bool is_dynamic = true;
-		  btDiscreteDynamicsWorld* world = app_scene->get_world();
 		  btCollisionShape* shape = NULL;
 		  scene_node *node = new scene_node(app_scene);
 		  node->access_nodeToParent() = mat;
@@ -121,6 +120,7 @@ namespace octet {
 
 	  btHingeConstraint* hinge = new btHingeConstraint(*rigid_body, *rigid_body2, btVector3(-3, 6, 0), btVector3(0, 15, 0), btVector3(1, 0, 0), btVector3(1, 0, 0));
 	  hinge->setLimit(0, 0);//-SIMD_HALF_PI * 0.5f, SIMD_HALF_PI * 0.5f);
+	  world->addConstraint(hinge, true);
 
 
 	  //app_scene->add_shape(mat, new mesh_box(vec3(2, 2, 2)), red, true);
