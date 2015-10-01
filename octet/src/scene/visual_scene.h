@@ -303,8 +303,9 @@ namespace octet { namespace scene {
 		return world;
 	}
 	
-	void createNewObjectWithRigidBody(mat4t_in mat, material *myMaterial, mesh* msh, float mass, bool is_dynamic, btRigidBody* rigidBody)
+	btRigidBody* createNewObjectWithRigidBody(mat4t_in mat, material *myMaterial, mesh* msh, float mass, bool is_dynamic)
 	{
+		btRigidBody* rigidBody = NULL;
 		btCollisionShape* shape = NULL;
 		scene_node *node = new scene_node(this);
 		node->access_nodeToParent() = mat;
@@ -339,6 +340,7 @@ namespace octet { namespace scene {
 			node->set_rigid_body(rigidBody);
 		}
 	#endif
+		return rigidBody;
 	}
 
     /// helper to add a mesh to a scene and also to create the corresponding physics object
