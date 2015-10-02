@@ -84,124 +84,133 @@ namespace octet {
 		material *green = new material(vec4(0, 1, 0, 1));
 		material *blue = new material(vec4(0, 0, 1, 1));
 		tinyxml2::XMLDocument doc;
-		doc.LoadFile("data.xml");
-		tinyxml2::XMLNode * el = doc.FirstChildElement("Data")->FirstChildElement("ShapeList")->FirstChildElement();
-		std::vector<predef_shape> listOfShapes = std::vector<predef_shape>();
-		std::vector<predef_link> listOfLinks = std::vector<predef_link>();
-		std::vector<btRigidBody *> listOfRB = std::vector<btRigidBody *>();
-		while (el != nullptr)
-		{
-			int ID = atoi(el->FirstChildElement("ID")->GetText());
-			string type = el->FirstChildElement("Type")->GetText();
-			vec3 location = vec3(atof(el->FirstChildElement("Location")->FirstChildElement("x")->GetText()), atof(el->FirstChildElement("Location")->FirstChildElement("y")->GetText()), atof(el->FirstChildElement("Location")->FirstChildElement("z")->GetText()));
+		if(doc.LoadFile("data.xml") == tinyxml2::XML_NO_ERROR)
+		{ 
+			tinyxml2::XMLNode * el = doc.FirstChildElement("Data")->FirstChildElement("ShapeList")->FirstChildElement();
+			std::vector<predef_shape> listOfShapes = std::vector<predef_shape>();
+			std::vector<predef_link> listOfLinks = std::vector<predef_link>();
+			std::vector<btRigidBody *> listOfRB = std::vector<btRigidBody *>();
+			while (el != nullptr)
+			{
+				int ID = atoi(el->FirstChildElement("ID")->GetText());
+				string type = el->FirstChildElement("Type")->GetText();
+				vec3 location = vec3(atof(el->FirstChildElement("Location")->FirstChildElement("x")->GetText()), atof(el->FirstChildElement("Location")->FirstChildElement("y")->GetText()), atof(el->FirstChildElement("Location")->FirstChildElement("z")->GetText()));
 			
-			std::vector<vec3> myRotations = std::vector<vec3>();
-			tinyxml2::XMLNode * el2 = el->FirstChildElement("RotationList")->FirstChildElement();
-			while (el2 != nullptr)
-			{
-				vec3 rotation = vec3(atof(el2->FirstChildElement("x")->GetText()), atof(el2->FirstChildElement("y")->GetText()), atof(el2->FirstChildElement("z")->GetText()));
-				myRotations.push_back(rotation);
-				el2 = el2->NextSibling();
+				std::vector<vec3> myRotations = std::vector<vec3>();
+				tinyxml2::XMLNode * el2 = el->FirstChildElement("RotationList")->FirstChildElement();
+				while (el2 != nullptr)
+				{
+					vec3 rotation = vec3(atof(el2->FirstChildElement("x")->GetText()), atof(el2->FirstChildElement("y")->GetText()), atof(el2->FirstChildElement("z")->GetText()));
+					myRotations.push_back(rotation);
+					el2 = el2->NextSibling();
+				}
+				float weight = atoi(el->FirstChildElement("Weight")->GetText());
+				string color = el->FirstChildElement("Color")->GetText();
+
+				predef_shape myShape = predef_shape(ID, type, location, myRotations, weight, color);
+				listOfShapes.push_back(myShape);
+				el = el->NextSibling();
 			}
-			float weight = atoi(el->FirstChildElement("Weight")->GetText());
-			string color = el->FirstChildElement("Color")->GetText();
-
-			predef_shape myShape = predef_shape(ID, type, location, myRotations, weight, color);
-			listOfShapes.push_back(myShape);
-			el = el->NextSibling();
-		}
-		el = doc.FirstChildElement("Data")->FirstChildElement("LinkList")->FirstChildElement();
-		while (el != nullptr)
-		{
-			string linkType = el->FirstChildElement("LinkType")->GetText();
-			int ID1 = atoi(el->FirstChildElement("ID1")->GetText());
-			int ID2 = atoi(el->FirstChildElement("ID2")->GetText());
-			string axis = el->FirstChildElement("Axis")->GetText();
-
-
-			predef_link myLink = predef_link(linkType, ID1, ID2, axis);
-			listOfLinks.push_back(myLink);
-			el = el->NextSibling();
-		}
-
-		for (int curentShape = 0; curentShape < listOfShapes.size(); curentShape++)
-		{
-			btRigidBody * myRB = NULL;
-			mat.loadIdentity();
-			mat.translate(listOfShapes[curentShape].getLoc());
-			material *myMat = NULL;
-
-			if (listOfShapes[curentShape].getColor() == "red")
-				myMat = red;
-			if (listOfShapes[curentShape].getColor() == "blue")
-				myMat = blue;
-			if (listOfShapes[curentShape].getColor() == "green")
-				myMat = green;
-
-
-			for (int currentRot = 0; currentRot < listOfShapes[curentShape].getRot().size(); currentRot++)
+			el = doc.FirstChildElement("Data")->FirstChildElement("LinkList")->FirstChildElement();
+			while (el != nullptr)
 			{
-				vec3 myRot = listOfShapes[curentShape].getRot()[currentRot];
-				if (myRot.x() != 0)
-					mat.rotateX(myRot.x());
-				if (myRot.y() != 0)
-					mat.rotateY(myRot.y());
-				if (myRot.z() != 0)
-					mat.rotateZ(myRot.z());
+				string linkType = el->FirstChildElement("LinkType")->GetText();
+				int ID1 = atoi(el->FirstChildElement("ID1")->GetText());
+				int ID2 = atoi(el->FirstChildElement("ID2")->GetText());
+				string axis = el->FirstChildElement("Axis")->GetText();
+
+
+				predef_link myLink = predef_link(linkType, ID1, ID2, axis);
+				listOfLinks.push_back(myLink);
+				el = el->NextSibling();
 			}
 
-			if (listOfShapes[curentShape].getType() == "Sphere")
+			for (int curentShape = 0; curentShape < listOfShapes.size(); curentShape++)
 			{
-				myRB = app_scene->createNewObjectWithRigidBody(mat, myMat, new mesh_sphere(vec3(2, 2, 2), 2), listOfShapes[curentShape].getWeight(), true);
+				btRigidBody * myRB = NULL;
+				mat.loadIdentity();
+				mat.translate(listOfShapes[curentShape].getLoc());
+				material *myMat = NULL;
+
+				if (listOfShapes[curentShape].getColor() == "red")
+					myMat = red;
+				else if (listOfShapes[curentShape].getColor() == "blue")
+					myMat = blue;
+				else if (listOfShapes[curentShape].getColor() == "green")
+					myMat = green;
+				else
+					continue;
+
+
+				for (int currentRot = 0; currentRot < listOfShapes[curentShape].getRot().size(); currentRot++)
+				{
+					vec3 myRot = listOfShapes[curentShape].getRot()[currentRot];
+					if (myRot.x() != 0)
+						mat.rotateX(myRot.x());
+					if (myRot.y() != 0)
+						mat.rotateY(myRot.y());
+					if (myRot.z() != 0)
+						mat.rotateZ(myRot.z());
+				}
+
+				if (listOfShapes[curentShape].getType() == "Sphere")
+				{
+					myRB = app_scene->createNewObjectWithRigidBody(mat, myMat, new mesh_sphere(vec3(2, 2, 2), 2), listOfShapes[curentShape].getWeight(), true);
+				}
+				else if (listOfShapes[curentShape].getType() == "Box")
+				{
+					myRB = app_scene->createNewObjectWithRigidBody(mat, myMat, new mesh_box(vec3(2, 2, 2)), listOfShapes[curentShape].getWeight(), true);
+				}
+				else if (listOfShapes[curentShape].getType() == "Cylinder")
+				{
+					myRB = app_scene->createNewObjectWithRigidBody(mat, myMat, new mesh_cylinder(zcylinder(vec3(0, 0, 0), 2, 4)), listOfShapes[curentShape].getWeight(), true);
+				}
+				listOfRB.push_back(myRB);
 			}
-			else if (listOfShapes[curentShape].getType() == "Box")
+
+			for (int currentLink = 0; currentLink < listOfLinks.size(); currentLink++)
 			{
-				myRB = app_scene->createNewObjectWithRigidBody(mat, myMat, new mesh_box(vec3(2, 2, 2)), listOfShapes[curentShape].getWeight(), true);
-			}
-			else if (listOfShapes[curentShape].getType() == "Cylinder")
-			{
-				myRB = app_scene->createNewObjectWithRigidBody(mat, myMat, new mesh_cylinder(zcylinder(vec3(0, 0, 0), 2, 4)), listOfShapes[curentShape].getWeight(), true);
-			}
-			listOfRB.push_back(myRB);
-		}
+				predef_shape shape1 = listOfShapes[listOfLinks[currentLink].getID1() - 1];
+				predef_shape shape2 = listOfShapes[listOfLinks[currentLink].getID2() - 1];
+				if (!listOfRB[shape1.getId() - 1] || !listOfRB[shape2.getId() - 1]) continue;
+				btVector3 axis = btVector3(1, 0, 0);
 
-		for (int currentLink = 0; currentLink < listOfLinks.size(); currentLink++)
-		{
-			predef_shape shape1 = listOfShapes[listOfLinks[currentLink].getID1() - 1];
-			predef_shape shape2 = listOfShapes[listOfLinks[currentLink].getID2() - 1];
-			btVector3 axis = btVector3(1, 0, 0);
-			if (listOfLinks[currentLink].getAxis() == "Y")
-				axis = btVector3(0, 1, 0);
-			else if (listOfLinks[currentLink].getAxis() == "Z")
-				axis = btVector3(0, 0, 1);
+				if (listOfLinks[currentLink].getAxis() == "X")
+					axis = btVector3(1, 0, 0);
+				else if (listOfLinks[currentLink].getAxis() == "Y")
+					axis = btVector3(0, 1, 0);
+				else if (listOfLinks[currentLink].getAxis() == "Z")
+					axis = btVector3(0, 0, 1);
+			
 
-			if (listOfLinks[currentLink].getType() == "Hinge")
-			{
-				btHingeConstraint* hinge = new btHingeConstraint(*listOfRB[listOfLinks[currentLink].getID1() - 1], *listOfRB[listOfLinks[currentLink].getID2() - 1], btVector3(shape1.getLoc().x(), shape1.getLoc().y(), shape1.getLoc().z()), btVector3(shape2.getLoc().x(), shape2.getLoc().y(), shape2.getLoc().z()), axis, axis);
-				hinge->setLimit(0, 0.5f);
-				world->addConstraint(hinge, true);
+				if (listOfLinks[currentLink].getType() == "Hinge")
+				{
+					btHingeConstraint* hinge = new btHingeConstraint(*listOfRB[listOfLinks[currentLink].getID1() - 1], *listOfRB[listOfLinks[currentLink].getID2() - 1], btVector3(shape1.getLoc().x(), shape1.getLoc().y(), shape1.getLoc().z()), btVector3(shape2.getLoc().x(), shape2.getLoc().y(), shape2.getLoc().z()), axis, axis);
+					hinge->setLimit(0, 0.5f);
+					world->addConstraint(hinge, true);
 
-			}
-			else if (listOfLinks[currentLink].getType() == "Spring")
-			{
-				btTransform frameInA, frameInB;
-				frameInA = btTransform::getIdentity();
-				frameInA.setOrigin(btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f)));
-				frameInB = btTransform::getIdentity();
-				frameInB.setOrigin(btVector3(btScalar(0.0f), btScalar(-5.0f), btScalar(0.0f)));
-				btGeneric6DofSpringConstraint* spring = new btGeneric6DofSpringConstraint(*listOfRB[listOfLinks[currentLink].getID1() - 1], *listOfRB[listOfLinks[currentLink].getID2() - 1], frameInA, frameInB, true);
+				}
+				else if (listOfLinks[currentLink].getType() == "Spring")
+				{
+					btTransform frameInA, frameInB;
+					frameInA = btTransform::getIdentity();
+					frameInA.setOrigin(btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f)));
+					frameInB = btTransform::getIdentity();
+					frameInB.setOrigin(btVector3(btScalar(0.0f), btScalar(-5.0f), btScalar(0.0f)));
+					btGeneric6DofSpringConstraint* spring = new btGeneric6DofSpringConstraint(*listOfRB[listOfLinks[currentLink].getID1() - 1], *listOfRB[listOfLinks[currentLink].getID2() - 1], frameInA, frameInB, true);
 
-				spring->setLinearUpperLimit(btVector3(5., 0., 0.));
-				spring->setLinearLowerLimit(btVector3(-5., 0., 0.));
+					spring->setLinearUpperLimit(btVector3(5., 0., 0.));
+					spring->setLinearLowerLimit(btVector3(-5., 0., 0.));
 
-				spring->setAngularLowerLimit(btVector3(0.f, 0.f, -1.5f));
-				spring->setAngularUpperLimit(btVector3(0.f, 0.f, 1.5f));
+					spring->setAngularLowerLimit(btVector3(0.f, 0.f, -1.5f));
+					spring->setAngularUpperLimit(btVector3(0.f, 0.f, 1.5f));
 
-				world->addConstraint(spring, true);
+					world->addConstraint(spring, true);
 
-				spring->enableSpring(0, true);
-				spring->setStiffness(0, 19.478f);
+					spring->enableSpring(0, true);
+					spring->setStiffness(0, 19.478f);
 
+				}
 			}
 		}
 
