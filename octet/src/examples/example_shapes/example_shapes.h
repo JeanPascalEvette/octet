@@ -12,18 +12,20 @@ namespace octet {
 
 		int ID;
 		string type;
+		string color;
 		vec3 location;
-		vec3 rotation;
+		std::vector<vec3> rotation;
 		float weight;
 
 	public :
-		predef_shape(int _id, string _type, vec3 _location, vec3 _rotation, float _weight) { ID = _id; type = _type; location = _location; rotation = _rotation; weight = _weight; }
+		predef_shape(int _id, string _type, vec3 _location, std::vector<vec3> _rotation, float _weight, string _color) { ID = _id; type = _type; location = _location; rotation = _rotation; weight = _weight; color = _color; }
 
 		int getId() { return ID; }
 		string getType() { return type; }
 		vec3 getLoc() { return location; }
-		vec3 getRot() { return rotation; }
+		std::vector<vec3> getRot() { return rotation; }
 		float getWeight() { return weight; }
+		string getColor() { return color; }
 	};
 	class predef_link {
 		string type;
@@ -56,21 +58,31 @@ namespace octet {
 		app_scene = new visual_scene();
 		world = app_scene->get_world();
 		app_scene->create_default_camera_and_lights();
-		app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 4, 10));
+		app_scene->get_camera_instance(0)->get_node()->translate(vec3(5, 4, 15));
 
-		btRigidBody* rigid_body = NULL;
-		btRigidBody* rigid_body2 = NULL;
-		btRigidBody* rigid_body3 = NULL;
-		btRigidBody* rigid_body4 = NULL;
-		btRigidBody* rigid_body5 = NULL;
-		material *red = new material(vec4(1, 0, 0, 1));
+
 		material *green = new material(vec4(0, 1, 0, 1));
-		material *blue = new material(vec4(0, 0, 1, 1));
 
-		//Spring & Hinge based of Bullet's demo -> http://bullet.googlecode.com/svn/trunk/Demos/ConstraintDemo/ConstraintDemo.cpp
 
 		mat4t mat;
 
+		loadDataFromFile();
+      // ground
+      mat.loadIdentity();
+      mat.translate(0, -1, 0);
+      app_scene->add_shape(mat, new mesh_box(vec3(200, 1, 200)), green, false);
+
+
+    }
+
+	void loadDataFromFile()
+	{
+		//Spring & Hinge based of Bullet's demo -> http://bullet.googlecode.com/svn/trunk/Demos/ConstraintDemo/ConstraintDemo.cpp
+
+		mat4t mat;
+		material *red = new material(vec4(1, 0, 0, 1));
+		material *green = new material(vec4(0, 1, 0, 1));
+		material *blue = new material(vec4(0, 0, 1, 1));
 		tinyxml2::XMLDocument doc;
 		doc.LoadFile("data.xml");
 		tinyxml2::XMLNode * el = doc.FirstChildElement("Data")->FirstChildElement("ShapeList")->FirstChildElement();
@@ -82,10 +94,19 @@ namespace octet {
 			int ID = atoi(el->FirstChildElement("ID")->GetText());
 			string type = el->FirstChildElement("Type")->GetText();
 			vec3 location = vec3(atof(el->FirstChildElement("Location")->FirstChildElement("x")->GetText()), atof(el->FirstChildElement("Location")->FirstChildElement("y")->GetText()), atof(el->FirstChildElement("Location")->FirstChildElement("z")->GetText()));
-			vec3 rotation = vec3(atof(el->FirstChildElement("Rotation")->FirstChildElement("x")->GetText()), atof(el->FirstChildElement("Rotation")->FirstChildElement("y")->GetText()), atof(el->FirstChildElement("Rotation")->FirstChildElement("z")->GetText()));
+			
+			std::vector<vec3> myRotations = std::vector<vec3>();
+			tinyxml2::XMLNode * el2 = el->FirstChildElement("RotationList")->FirstChildElement();
+			while (el2 != nullptr)
+			{
+				vec3 rotation = vec3(atof(el2->FirstChildElement("x")->GetText()), atof(el2->FirstChildElement("y")->GetText()), atof(el2->FirstChildElement("z")->GetText()));
+				myRotations.push_back(rotation);
+				el2 = el2->NextSibling();
+			}
 			float weight = atoi(el->FirstChildElement("Weight")->GetText());
+			string color = el->FirstChildElement("Color")->GetText();
 
-			predef_shape myShape = predef_shape(ID, type, location, rotation, weight);
+			predef_shape myShape = predef_shape(ID, type, location, myRotations, weight, color);
 			listOfShapes.push_back(myShape);
 			el = el->NextSibling();
 		}
@@ -96,7 +117,7 @@ namespace octet {
 			int ID1 = atoi(el->FirstChildElement("ID1")->GetText());
 			int ID2 = atoi(el->FirstChildElement("ID2")->GetText());
 			string axis = el->FirstChildElement("Axis")->GetText();
-			
+
 
 			predef_link myLink = predef_link(linkType, ID1, ID2, axis);
 			listOfLinks.push_back(myLink);
@@ -108,17 +129,38 @@ namespace octet {
 			btRigidBody * myRB = NULL;
 			mat.loadIdentity();
 			mat.translate(listOfShapes[curentShape].getLoc());
+			material *myMat = NULL;
+
+			if (listOfShapes[curentShape].getColor() == "red")
+				myMat = red;
+			if (listOfShapes[curentShape].getColor() == "blue")
+				myMat = blue;
+			if (listOfShapes[curentShape].getColor() == "green")
+				myMat = green;
+
+
+			for (int currentRot = 0; currentRot < listOfShapes[curentShape].getRot().size(); currentRot++)
+			{
+				vec3 myRot = listOfShapes[curentShape].getRot()[currentRot];
+				if (myRot.x() != 0)
+					mat.rotateX(myRot.x());
+				if (myRot.y() != 0)
+					mat.rotateY(myRot.y());
+				if (myRot.z() != 0)
+					mat.rotateZ(myRot.z());
+			}
+
 			if (listOfShapes[curentShape].getType() == "Sphere")
 			{
-				myRB = app_scene->createNewObjectWithRigidBody(mat, blue, new mesh_sphere(vec3(2, 2, 2), 2), listOfShapes[curentShape].getWeight(), true);
+				myRB = app_scene->createNewObjectWithRigidBody(mat, myMat, new mesh_sphere(vec3(2, 2, 2), 2), listOfShapes[curentShape].getWeight(), true);
 			}
 			else if (listOfShapes[curentShape].getType() == "Box")
 			{
-				myRB = app_scene->createNewObjectWithRigidBody(mat, blue, new mesh_box(vec3(2, 2, 2)), listOfShapes[curentShape].getWeight(), true);
+				myRB = app_scene->createNewObjectWithRigidBody(mat, myMat, new mesh_box(vec3(2, 2, 2)), listOfShapes[curentShape].getWeight(), true);
 			}
 			else if (listOfShapes[curentShape].getType() == "Cylinder")
 			{
-				myRB = app_scene->createNewObjectWithRigidBody(mat, red, new mesh_cylinder(zcylinder(vec3(0, 0, 0), 2, 4)), listOfShapes[curentShape].getWeight(), true);
+				myRB = app_scene->createNewObjectWithRigidBody(mat, myMat, new mesh_cylinder(zcylinder(vec3(0, 0, 0), 2, 4)), listOfShapes[curentShape].getWeight(), true);
 			}
 			listOfRB.push_back(myRB);
 		}
@@ -135,7 +177,7 @@ namespace octet {
 
 			if (listOfLinks[currentLink].getType() == "Hinge")
 			{
-				btHingeConstraint* hinge = new btHingeConstraint(*listOfRB[listOfLinks[currentLink].getID1()-1], *listOfRB[listOfLinks[currentLink].getID2() - 1], btVector3(shape1.getLoc().x(), shape1.getLoc().y(), shape1.getLoc().z()), btVector3(shape2.getLoc().x(), shape2.getLoc().y(), shape2.getLoc().z()), axis, axis);
+				btHingeConstraint* hinge = new btHingeConstraint(*listOfRB[listOfLinks[currentLink].getID1() - 1], *listOfRB[listOfLinks[currentLink].getID2() - 1], btVector3(shape1.getLoc().x(), shape1.getLoc().y(), shape1.getLoc().z()), btVector3(shape2.getLoc().x(), shape2.getLoc().y(), shape2.getLoc().z()), axis, axis);
 				hinge->setLimit(0, 0.5f);
 				world->addConstraint(hinge, true);
 
@@ -163,89 +205,7 @@ namespace octet {
 			}
 		}
 
-		/*
-		float whiteBallLocX = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("x")->GetText());
-		float whiteBallLocY = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("y")->GetText());
-		float whiteBallLocZ = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("z")->GetText());
-
-
-
-
-
-
-		mat.loadIdentity();
-		mat.translate(-13, 6, 0);
-		rigid_body = app_scene->createNewObjectWithRigidBody(mat, blue, new mesh_sphere(vec3(2, 2, 2), 2), 1.0f, true);
-
-
-		mat.loadIdentity();
-		mat.translate(-10, 15, 0);
-		rigid_body2 = app_scene->createNewObjectWithRigidBody(mat, blue, new mesh_sphere(vec3(2,2,2),2),1.0f, true);
-
-
-		btHingeConstraint* hinge = new btHingeConstraint(*rigid_body, *rigid_body2, btVector3(-3, 6, 0), btVector3(0, 15, 0), btVector3(1, 0, 0), btVector3(1, 0, 0));
-		hinge->setLimit(0, 0.5f);
-		world->addConstraint(hinge, true);
-
-
-		mat.loadIdentity();
-		mat.translate(8, 0, 5);
-		rigid_body3 = app_scene->createNewObjectWithRigidBody(mat, blue, new mesh_box(vec3(2, 2, 2)), 1.0f, true);
-
-
-
-		mat.loadIdentity();
-		mat.translate(7, 5, 5);
-		rigid_body4 = app_scene->createNewObjectWithRigidBody(mat, blue, new mesh_box(vec3(2, 2, 2)), 1.0f, true);
-
-
-		mat.loadIdentity();
-		mat.translate(13, 0, 5);
-		rigid_body5 = app_scene->createNewObjectWithRigidBody(mat, blue, new mesh_box(vec3(2, 2, 2)), 51.0f, true);
-
-
-		btHingeConstraint* hinge2 = new btHingeConstraint(*rigid_body3, *rigid_body5, btVector3(-3, 0, 5), btVector3(-3, 0, 10), btVector3(0, 1, 0), btVector3(0, 1, 0));
-		hinge2->setLimit(0, 0.5f);
-		world->addConstraint(hinge2, true);
-
-
-		btTransform frameInA, frameInB;
-		frameInA = btTransform::getIdentity();
-		frameInA.setOrigin(btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f)));
-		frameInB = btTransform::getIdentity();
-		frameInB.setOrigin(btVector3(btScalar(0.0f), btScalar(-5.0f), btScalar(0.0f)));
-		btGeneric6DofSpringConstraint* spring = new btGeneric6DofSpringConstraint(*rigid_body3, *rigid_body4, frameInA, frameInB, true);
-
-		spring->setLinearUpperLimit(btVector3(5., 0., 0.));
-		spring->setLinearLowerLimit(btVector3(-5., 0., 0.));
-
-		spring->setAngularLowerLimit(btVector3(0.f, 0.f, -1.5f));
-		spring->setAngularUpperLimit(btVector3(0.f, 0.f, 1.5f));
-
-		world->addConstraint(spring, true);
-		
-		spring->enableSpring(0, true);
-		spring->setStiffness(0, 19.478f);
-		
-
-	  //app_scene->add_shape(mat, new mesh_box(vec3(2, 2, 2)), red, true);
-	  //scene_node* box = app_scene->get_mesh_instance(1)->get_scene_node();
-
-
-      mat.loadIdentity();
-      mat.translate( 2, 0, -1.0f);
-	  mat.rotate(90, 0, 1, 0);
-      app_scene->add_shape(mat, new mesh_cylinder(zcylinder(vec3(0, 0, 0), 2, 4)), red, true);
-
-	  */
-
-      // ground
-      mat.loadIdentity();
-      mat.translate(0, -1, 0);
-      app_scene->add_shape(mat, new mesh_box(vec3(200, 1, 200)), green, false);
-
-
-    }
+	}
 
 
 	
