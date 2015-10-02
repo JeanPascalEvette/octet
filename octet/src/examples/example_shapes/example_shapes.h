@@ -8,6 +8,8 @@
 #include "tinyxml2.h"
 namespace octet {
 
+
+	//Container classes to store data imported from XML file
 	class predef_shape {
 
 		int ID;
@@ -75,6 +77,7 @@ namespace octet {
 
     }
 
+	/// Loads data from an XML file and generates shape based on it
 	void loadDataFromFile()
 	{
 		//Spring & Hinge based of Bullet's demo -> http://bullet.googlecode.com/svn/trunk/Demos/ConstraintDemo/ConstraintDemo.cpp
@@ -90,6 +93,8 @@ namespace octet {
 			std::vector<predef_shape> listOfShapes = std::vector<predef_shape>();
 			std::vector<predef_link> listOfLinks = std::vector<predef_link>();
 			std::vector<btRigidBody *> listOfRB = std::vector<btRigidBody *>();
+
+			//Generate list of Shapes
 			while (el != nullptr)
 			{
 				int ID = atoi(el->FirstChildElement("ID")->GetText());
@@ -111,6 +116,8 @@ namespace octet {
 				listOfShapes.push_back(myShape);
 				el = el->NextSibling();
 			}
+
+			//Generate list of links
 			el = doc.FirstChildElement("Data")->FirstChildElement("LinkList")->FirstChildElement();
 			while (el != nullptr)
 			{
@@ -125,6 +132,7 @@ namespace octet {
 				el = el->NextSibling();
 			}
 
+			//Use list of shapes to generate actual shapes in OpenGL
 			for (int curentShape = 0; curentShape < listOfShapes.size(); curentShape++)
 			{
 				btRigidBody * myRB = NULL;
@@ -168,10 +176,14 @@ namespace octet {
 				listOfRB.push_back(myRB);
 			}
 
+
+			//Use list of links to generate constraints
 			for (int currentLink = 0; currentLink < listOfLinks.size(); currentLink++)
 			{
 				predef_shape shape1 = listOfShapes[listOfLinks[currentLink].getID1() - 1];
 				predef_shape shape2 = listOfShapes[listOfLinks[currentLink].getID2() - 1];
+
+				//Make sure that both shapes exist
 				if (!listOfRB[shape1.getId() - 1] || !listOfRB[shape2.getId() - 1]) continue;
 				btVector3 axis = btVector3(1, 0, 0);
 
@@ -199,6 +211,7 @@ namespace octet {
 					frameInB.setOrigin(btVector3(btScalar(0.0f), btScalar(-5.0f), btScalar(0.0f)));
 					btGeneric6DofSpringConstraint* spring = new btGeneric6DofSpringConstraint(*listOfRB[listOfLinks[currentLink].getID1() - 1], *listOfRB[listOfLinks[currentLink].getID2() - 1], frameInA, frameInB, true);
 
+					//Some of those values would idealy be parameters in the XML file
 					spring->setLinearUpperLimit(btVector3(5., 0., 0.));
 					spring->setLinearLowerLimit(btVector3(-5., 0., 0.));
 
