@@ -223,6 +223,10 @@ namespace octet { namespace scene {
         return rigid_body;
       }
 
+	  void testRigidBody(btRigidBody* rbd)
+	  {
+		  rbd = rigid_body;
+	  }
       /// set the rigid body associated with this node (used for physics)      
       void set_rigid_body(btRigidBody *value) {
         rigid_body = value;
