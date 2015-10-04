@@ -168,7 +168,8 @@ namespace octet {
 	  
 
 	  field->set_resitution(1.0f);
-	  field->set_friction(0.5f);
+	  field->set_friction(1.0f);
+	  field->set_rolling_friction(1.0f);
 	  wall->set_resitution(1.0f);
 	  wall2->set_resitution(1.0f);
 	  wall3->set_resitution(1.0f);
@@ -177,8 +178,6 @@ namespace octet {
 	  currentNodePostInit = currentNode;
 	  loadDataFromFile();
 
-	  whiteBall->set_friction(4.0f);
-	  whiteBall->set_resitution(0.75f);
     }
 
 
@@ -203,10 +202,12 @@ namespace octet {
 		// Generate white ball (This will be modified to position the ball based on some input data later)
 		mat.loadIdentity();
 		mat.translate(whiteBallLocX, whiteBallLocY, whiteBallLocZ);
-		app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), white, true, 100.0f);
+		app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), white, true, 10.0f);
 		whiteBall = app_scene->get_mesh_instance(currentNode++)->get_node();
 		whiteBall->set_linear_velocity(vec3(whiteBallVelX, whiteBallVelY, whiteBallVelZ));
-
+		whiteBall->set_friction(0.5f);
+		whiteBall->set_rolling_friction(0.5f);
+		whiteBall->set_resitution(0.75f);
 
 		redBalls = std::vector<ref<scene_node>>();
 		tinyxml2::XMLNode * el = doc.FirstChildElement("Data")->FirstChildElement("ListOfRedBall")->FirstChildElement();
@@ -224,14 +225,15 @@ namespace octet {
 			app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true, 10.0f);
 			scene_node *redBall = app_scene->get_mesh_instance(currentNode++)->get_node();
 			redBall->set_linear_velocity(vec3(redBallVelX, redBallVelY, redBallVelZ));
-			redBall->set_friction(0.3f);
+			redBall->set_friction(0.5f);
+			redBall->set_rolling_friction(0.5f);
 			redBall->set_resitution(0.75f);
 			redBalls.push_back(redBall);
 			el = el->NextSibling();
 
 		}
 
-		whiteBall->set_linear_velocity(vec3(24, 0, 14));
+		//whiteBall->set_linear_velocity(vec3(24, 0, 14));
 	}
 
 	/// This function generates a black disc to be used as a hole. It is based on the helix object created on example_geometry
@@ -498,8 +500,6 @@ namespace octet {
 		}
 
 		loadDataFromFile();
-		whiteBall->set_friction(4.0f);
-		whiteBall->set_resitution(0.75f);
 
 	}
 
@@ -518,7 +518,7 @@ namespace octet {
 			resetBoard();
 			return;
 		}
-		return;
+
 		eraseRay();
 		int newX, newY;
 		get_mouse_pos(newX, newY);
@@ -537,8 +537,8 @@ namespace octet {
 			int vectorLength = sqrt(pow(dirVector.x(),2) + pow(dirVector.y(),2));
 			vec2 unitVector = dirVector / vectorLength;
 
-			if (vectorLength > 500)
-				vectorLength = 50;
+			if (vectorLength > 700)
+				vectorLength = 70;
 			else
 				vectorLength /= 10;
 
