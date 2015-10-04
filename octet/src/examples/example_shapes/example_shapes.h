@@ -6,6 +6,7 @@
 //
 
 #include "tinyxml2.h"
+#include "SoundSystem.h"
 
 namespace octet {
 
@@ -51,6 +52,11 @@ namespace octet {
 	scene_node * ground;
 	int springIndex;
 
+	SoundSystemClass sound;
+	SoundClass bounceSound;
+	FMOD::Channel* bounceChannel;
+	vec3 lastCol;
+
   public:
     example_shapes(int argc, char **argv) : app(argc, argv) {
     }
@@ -60,6 +66,9 @@ namespace octet {
 
     /// this is called once OpenGL is initialized
 	void app_init() {
+		lastCol = vec3(0);
+		setUpSound();
+
 		app_scene = new visual_scene();
 		world = app_scene->get_world();
 		app_scene->create_default_camera_and_lights();
@@ -265,11 +274,30 @@ namespace octet {
 				double ptdist = pt.getDistance();
 				std::string dist = "Collision between objects at position (" + std::to_string(currentObjA->get_position().x()) + "," + std::to_string(currentObjA->get_position().y()) + "," + std::to_string(currentObjA->get_position().z()) + ") and (" + std::to_string(currentObjB->get_position().x()) + ", " + std::to_string(currentObjB->get_position().y()) + ", " + std::to_string(currentObjB->get_position().z()) + ") " + "\n";
 				printf(dist.c_str());
+
+				//Make sure the sound file is played only once at a time when the objects keep colliding with each other
+				if (!bounceChannel)
+					bounceChannel = sound.playSound(bounceSound, false);
+				bool isChannelPlaying = false;
+				bounceChannel->isPlaying(&isChannelPlaying);
+				if(!isChannelPlaying)
+					bounceChannel = sound.playSound(bounceSound, false);
 				
 			}
 		}
 	}
-	
+
+	void setUpSound()
+	{
+		// Initialize our sound system
+		sound = SoundSystemClass();
+
+		// http://www.freesfx.co.uk/download/?type=mp3&id=9971
+		sound.createSound(&bounceSound, "bounce.mp3");
+		bounceChannel = NULL;
+
+	}
+
 
     /// this is called to draw the world
     void draw_world(int x, int y, int w, int h) {

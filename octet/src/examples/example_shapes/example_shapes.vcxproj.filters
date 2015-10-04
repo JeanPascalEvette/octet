@@ -432,6 +432,7 @@
     </ClInclude>
     <ClInclude Include="example_shapes.h" />
     <ClInclude Include="tinyxml2.h" />
+    <ClInclude Include="SoundSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\resources\mesh_builder.inl">
