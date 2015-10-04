@@ -133,8 +133,6 @@ namespace octet {
 	  mat.translate(0, -1, 20);
 	  app_scene->add_shape(mat, new mesh_box(vec3(16.0f, 3.5f, 1.0f)), darkgreen, false);
 
-	  loadDataFromFile();
-
 	  // Generate the 6 holes of the pool table
 	  myHoles = std::vector<ref<scene_node>>();
 	  generateHole(vec3(13.5f, 3.5f, 0.0f), holesRadius);
@@ -158,8 +156,7 @@ namespace octet {
 	  // Give random movement to the balls (This will be modified to generate velocities based on some input data later)
 	  // Also set some friction and restitution values. Those need to be modified to make it more realistic
 	  
-	  whiteBall->set_friction(4.0f);
-	  whiteBall->set_resitution(0.75f);
+
 
 	  
 	  
@@ -170,6 +167,11 @@ namespace octet {
 	  wall2->set_resitution(1.0f);
 	  wall3->set_resitution(1.0f);
 	  wall4->set_resitution(1.0f);
+
+	  loadDataFromFile();
+
+	  whiteBall->set_friction(4.0f);
+	  whiteBall->set_resitution(0.75f);
 
     }
 
@@ -194,9 +196,9 @@ namespace octet {
 		mat.loadIdentity();
 		mat.translate(whiteBallLocX, whiteBallLocY, whiteBallLocZ);
 		app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), white, true);
-		whiteBall = app_scene->get_mesh_instance(6)->get_node();
+		whiteBall = app_scene->get_mesh_instance(12)->get_node();
 		whiteBall->set_linear_velocity(vec3(whiteBallVelX, whiteBallVelY, whiteBallVelZ));
-		int currentNode = 7;
+		int currentNode = 13;
 
 
 		redBalls = std::vector<ref<scene_node>>();
@@ -456,6 +458,24 @@ namespace octet {
 		}
 	}
 
+	void resetBoard()
+	{
+		app_scene->delete_mesh_instance(app_scene->get_first_mesh_instance(whiteBall));
+		whiteBall.~ref();
+		printf("White Ball has been deleted.");
+
+		std::vector<ref<scene_node>>::iterator it;
+		for (it = redBalls.begin(); it != redBalls.end();)
+		{
+			app_scene->delete_mesh_instance(app_scene->get_first_mesh_instance((*it)));
+			it = redBalls.erase(it);
+			printf("Ball has been deleted.");
+		}
+
+		loadDataFromFile();
+
+	}
+
 
 	vec3 convertScreenToWorld(vec3 position)
 	{
@@ -466,6 +486,12 @@ namespace octet {
 	/// this is called to handle inputs
 	void handleInputs()
 	{
+		if (is_key_down(key_space))
+		{
+			resetBoard();
+			return;
+		}
+
 		eraseRay();
 		int newX, newY;
 		get_mouse_pos(newX, newY);

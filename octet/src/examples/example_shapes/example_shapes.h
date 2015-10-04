@@ -48,6 +48,8 @@ namespace octet {
     ref<visual_scene> app_scene;
 	btDiscreteDynamicsWorld* world;
 	scene_node * ground;
+	int springIndex;
+
   public:
     example_shapes(int argc, char **argv) : app(argc, argv) {
     }
@@ -80,12 +82,15 @@ namespace octet {
 
     }
 
+	
+
 	/// Loads data from an XML file and generates shape based on it
 	void loadDataFromFile()
 	{
 		//Spring & Hinge based of Bullet's demo -> http://bullet.googlecode.com/svn/trunk/Demos/ConstraintDemo/ConstraintDemo.cpp
 
 		mat4t mat;
+		springIndex = 0;
 		material *red = new material(vec4(1, 0, 0, 1));
 		material *green = new material(vec4(0, 1, 0, 1));
 		material *blue = new material(vec4(0, 0, 1, 1));
@@ -223,7 +228,7 @@ namespace octet {
 
 					world->addConstraint(spring, false);
 
-					spring->enableSpring(0, true);
+					spring->enableSpring(springIndex++, true);
 					spring->setStiffness(0, 19.478f);
 
 				}
