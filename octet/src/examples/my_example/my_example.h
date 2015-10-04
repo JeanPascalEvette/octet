@@ -31,7 +31,7 @@ namespace octet {
 	  float holesRadius;
 
 	  int xMousePos, yMousePos;
-
+	  int currentNode, currentNodePostInit;
 
 	  struct my_vertex {
 		  vec3p pos;
@@ -53,6 +53,7 @@ namespace octet {
     /// this is called once OpenGL is initialized
     void app_init() {
 		enable_cursor();
+	  currentNode = 0;
       app_scene =  new visual_scene();
 	  holesRadius = 1.4f;
 	  xMousePos = -999, yMousePos = -999;
@@ -69,7 +70,7 @@ namespace octet {
 
 
 	  // Set the camera depending on camera type
-	  CameraType CameraPosition = CameraType::TOPDOWN;
+	  CameraType CameraPosition = CameraType::MOBILE;
 	  if (CameraPosition == CameraType::TOPDOWN)
 	  {
 		  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 60, 0));
@@ -102,6 +103,7 @@ namespace octet {
 			  new btCapsuleShape(0.25f, player_height)
 			  );
 		   player_node = mi->get_node();
+		   currentNode++;
 	  }
 
 
@@ -133,6 +135,16 @@ namespace octet {
 	  mat.translate(0, -1, 20);
 	  app_scene->add_shape(mat, new mesh_box(vec3(16.0f, 3.5f, 1.0f)), darkgreen, false);
 
+
+	  // Create scene_nodes corresponding to the meshes created
+	  scene_node *ground = app_scene->get_mesh_instance(currentNode++)->get_node();
+	  scene_node *field = app_scene->get_mesh_instance(currentNode++)->get_node();
+	  scene_node *wall = app_scene->get_mesh_instance(currentNode++)->get_node();
+	  scene_node *wall2 = app_scene->get_mesh_instance(currentNode++)->get_node();
+	  scene_node *wall3 = app_scene->get_mesh_instance(currentNode++)->get_node();
+	  scene_node *wall4 = app_scene->get_mesh_instance(currentNode++)->get_node();
+
+
 	  // Generate the 6 holes of the pool table
 	  myHoles = std::vector<ref<scene_node>>();
 	  generateHole(vec3(13.5f, 3.5f, 0.0f), holesRadius);
@@ -142,14 +154,6 @@ namespace octet {
 	  generateHole(vec3(-13.0f, 3.5f, 18.0f), holesRadius);
 	  generateHole(vec3(-13.0f, 3.5f, -18.0f), holesRadius);
 
-
-	  // Create scene_nodes corresponding to the meshes created
-	  scene_node *ground = app_scene->get_mesh_instance(0)->get_node();
-	  scene_node *field = app_scene->get_mesh_instance(1)->get_node();
-	  scene_node *wall = app_scene->get_mesh_instance(2)->get_node();
-	  scene_node *wall2 = app_scene->get_mesh_instance(3)->get_node();
-	  scene_node *wall3 = app_scene->get_mesh_instance(4)->get_node();
-	  scene_node *wall4 = app_scene->get_mesh_instance(5)->get_node();
 
 
 
@@ -168,16 +172,17 @@ namespace octet {
 	  wall3->set_resitution(1.0f);
 	  wall4->set_resitution(1.0f);
 
+	  currentNodePostInit = currentNode;
 	  loadDataFromFile();
 
 	  whiteBall->set_friction(4.0f);
 	  whiteBall->set_resitution(0.75f);
-
     }
 
 
 	void loadDataFromFile()
 	{
+		currentNode = currentNodePostInit;
 		mat4t mat;
 		material *red = new material(vec4(1, 0, 0, 1));
 		material *white = new material(vec4(1, 1, 1, 1));
@@ -196,9 +201,8 @@ namespace octet {
 		mat.loadIdentity();
 		mat.translate(whiteBallLocX, whiteBallLocY, whiteBallLocZ);
 		app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), white, true);
-		whiteBall = app_scene->get_mesh_instance(12)->get_node();
+		whiteBall = app_scene->get_mesh_instance(currentNode++)->get_node();
 		whiteBall->set_linear_velocity(vec3(whiteBallVelX, whiteBallVelY, whiteBallVelZ));
-		int currentNode = 13;
 
 
 		redBalls = std::vector<ref<scene_node>>();
@@ -302,6 +306,7 @@ namespace octet {
 		//Move the hole to the required location, then add it to the list of holes.
 		node->translate(position);
 		myHoles.push_back(node);
+		currentNode++;
 	}
 
 
