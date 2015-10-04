@@ -168,7 +168,7 @@ namespace octet {
 	  
 
 	  field->set_resitution(1.0f);
-	  field->set_friction(1.0f);
+	 // field->set_friction(1.0f);
 	  field->set_rolling_friction(1.0f);
 	  wall->set_resitution(1.0f);
 	  wall2->set_resitution(1.0f);
@@ -205,9 +205,10 @@ namespace octet {
 		app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), white, true, 10.0f);
 		whiteBall = app_scene->get_mesh_instance(currentNode++)->get_node();
 		whiteBall->set_linear_velocity(vec3(whiteBallVelX, whiteBallVelY, whiteBallVelZ));
-		whiteBall->set_friction(0.5f);
+		//whiteBall->set_friction(0.5f);
 		whiteBall->set_rolling_friction(0.5f);
 		whiteBall->set_resitution(0.75f);
+		whiteBall->activateForever();
 
 		redBalls = std::vector<ref<scene_node>>();
 		tinyxml2::XMLNode * el = doc.FirstChildElement("Data")->FirstChildElement("ListOfRedBall")->FirstChildElement();
@@ -225,7 +226,7 @@ namespace octet {
 			app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true, 10.0f);
 			scene_node *redBall = app_scene->get_mesh_instance(currentNode++)->get_node();
 			redBall->set_linear_velocity(vec3(redBallVelX, redBallVelY, redBallVelZ));
-			redBall->set_friction(0.5f);
+			//redBall->set_friction(0.5f);
 			redBall->set_rolling_friction(0.5f);
 			redBall->set_resitution(0.75f);
 			redBalls.push_back(redBall);
@@ -484,12 +485,13 @@ namespace octet {
 			resetTime = clock() + 1000;
 		else
 			return;
-
+		if(whiteBall)
+		{
 		whiteBall->set_position(vec3(0, -10.0f, 0)); // Hides the ball until I can figure out how to properly delete it.
 		app_scene->delete_mesh_instance(app_scene->get_first_mesh_instance(whiteBall));
 		whiteBall.~ref();
 		printf("White Ball has been deleted.");
-
+		}
 		std::vector<ref<scene_node>>::iterator it;
 		for (it = redBalls.begin(); it != redBalls.end();)
 		{
@@ -513,44 +515,53 @@ namespace octet {
 	/// this is called to handle inputs
 	void handleInputs()
 	{
-		if (is_key_down(key_space))
+		if (!whiteBall) return;
+
+		if (is_key_down(key_ctrl))
+		{
+			whiteBall->set_linear_velocity(vec3(24,0,14));
+			return;
+		}
+		else if (is_key_down(key_space))
 		{
 			resetBoard();
 			return;
 		}
-
-		eraseRay();
-		int newX, newY;
-		get_mouse_pos(newX, newY);
-		vec3 mouseWorldPos = convertScreenToWorld(vec3(newX, 3, newY));
-		if (is_key_down(key_lmb))
-			printf("X: %d Y: %d\n X2: %f Y2: %f\n\n", newX, newY, mouseWorldPos.x(), mouseWorldPos.z());
-		if (is_key_down(key_lmb) && xMousePos == -999 && yMousePos == -999
-			&& vecInsideOfCircle(vec3(mouseWorldPos.x(), 3, mouseWorldPos.z()), whiteBall->get_position(), 1))
+		else 
 		{
-			get_mouse_pos(xMousePos, yMousePos);
-		}
-		else if (!is_key_down(key_lmb) && xMousePos != -999 && yMousePos != -999)
-		{
+			eraseRay();
+			int newX, newY;
+			get_mouse_pos(newX, newY);
+			vec3 mouseWorldPos = convertScreenToWorld(vec3(newX, 3, newY));
+			if (is_key_down(key_lmb))
+				printf("X: %d Y: %d\n X2: %f Y2: %f\n\n", newX, newY, mouseWorldPos.x(), mouseWorldPos.z());
+			if (is_key_down(key_lmb) && xMousePos == -999 && yMousePos == -999
+				&& vecInsideOfCircle(vec3(mouseWorldPos.x(), 3, mouseWorldPos.z()), whiteBall->get_position(), 1))
+			{
+				get_mouse_pos(xMousePos, yMousePos);
+			}
+			else if (!is_key_down(key_lmb) && xMousePos != -999 && yMousePos != -999)
+			{
 
-			vec2 dirVector = vec2(newX - xMousePos, newY - yMousePos);
-			int vectorLength = sqrt(pow(dirVector.x(),2) + pow(dirVector.y(),2));
-			vec2 unitVector = dirVector / vectorLength;
+				vec2 dirVector = vec2(newX - xMousePos, newY - yMousePos);
+				int vectorLength = sqrt(pow(dirVector.x(), 2) + pow(dirVector.y(), 2));
+				vec2 unitVector = dirVector / vectorLength;
 
-			if (vectorLength > 700)
-				vectorLength = 70;
-			else
-				vectorLength /= 10;
+				if (vectorLength > 700)
+					vectorLength = 70;
+				else
+					vectorLength /= 10;
 
-			if (whiteBall)
-			whiteBall->set_linear_velocity(-1*vec3(unitVector.x(), 0 , unitVector.y()) * vectorLength);
+				if (whiteBall)
+					whiteBall->set_linear_velocity(-1 * vec3(unitVector.x(), 0, unitVector.y()) * vectorLength);
 
-			xMousePos = -999;
-			yMousePos = -999;
-		}
-		else if (is_key_down(key_lmb) && xMousePos != -999 && yMousePos != -999)
-		{
-			generateRay(convertScreenToWorld(vec3(xMousePos, 3, yMousePos)), convertScreenToWorld(vec3(newX, 3, newY)), 0.1f);
+				xMousePos = -999;
+				yMousePos = -999;
+			}
+			else if (is_key_down(key_lmb) && xMousePos != -999 && yMousePos != -999)
+			{
+				generateRay(convertScreenToWorld(vec3(xMousePos, 3, yMousePos)), convertScreenToWorld(vec3(newX, 3, newY)), 0.1f);
+			}
 		}
 	}
 
@@ -560,14 +571,6 @@ namespace octet {
       get_viewport_size(vx, vy);
       app_scene->begin_render(vx, vy);
 
-	  // Player_node is only initialized when on MOBILE camera type
-	  if (player_node)
-	  {
-		  scene_node *camera_node = the_camera->get_node();
-		  mat4t &camera_to_world = camera_node->access_nodeToParent();
-		  mouse_look_helper.update(camera_to_world);
-		  fps_helper.update(player_node, camera_node);
-	  }
 
       // update matrices. assume 30 fps.
       app_scene->update(1.0f/30);
@@ -577,11 +580,21 @@ namespace octet {
       app_scene->render((float)vx / vy);
 	  
 
+	  // Player_node is only initialized when on MOBILE camera type
+	  if (player_node)
+	  {
+		  scene_node *camera_node = the_camera->get_node();
+		  mat4t &camera_to_world = camera_node->access_nodeToParent();
+		  mouse_look_helper.update(camera_to_world);
+		  fps_helper.update(player_node, camera_node);
+	  }
 	  // handle balls in pockets
 	  checkIfBallIsInPocket();
 
 	  handleInputs();
 
+	  //std::string whiteBallHeight = std::to_string(whiteBall->get_position().y()) + " \n";
+	  //printf(whiteBallHeight.c_str());
     }
   };
 }
