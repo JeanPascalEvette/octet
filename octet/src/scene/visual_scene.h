@@ -338,16 +338,18 @@ namespace octet { namespace scene {
 			world->addRigidBody(rigidBody);
 			rigidBody->setUserPointer(node);
 			node->set_rigid_body(rigidBody);
+			node->setIgnoreCol(!is_dynamic);
 		}
 	#endif
 		return rigidBody;
 	}
 
+
     /// helper to add a mesh to a scene and also to create the corresponding physics object
     mesh_instance *add_shape(mat4t_in mat, mesh *msh, material *mtl, bool is_dynamic=false, float mass=1, collison_shape_t *shape=NULL) {
       scene_node *node = new scene_node(this);
       node->access_nodeToParent() = mat;
-
+	  
       mesh_instance *result = NULL;
       if (msh && mtl) {
         result = new mesh_instance(node, msh, mtl);
@@ -376,6 +378,7 @@ namespace octet { namespace scene {
           world->addRigidBody(rigid_body);
           rigid_body->setUserPointer(node);
           node->set_rigid_body(rigid_body);
+		  node->setIgnoreCol(!is_dynamic);
         }
       #endif
       return result;

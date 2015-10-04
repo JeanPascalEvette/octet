@@ -26,6 +26,7 @@ namespace octet { namespace scene {
 
     // is this node and all its children renderable?
     bool enabled;
+	bool ignoresCollisions;
 
   public:
     RESOURCE_META(scene_node)
@@ -33,6 +34,7 @@ namespace octet { namespace scene {
     /// Construct a scene node with an identity transform and no parent.
     scene_node(scene_node *parent = 0) {
       nodeToParent.loadIdentity();
+	  ignoresCollisions = false;
       sid = atom_;
       enabled = true;
       if (parent) {
@@ -86,6 +88,16 @@ namespace octet { namespace scene {
     scene_node *get_parent() {
       return parent;
     }
+
+	bool getIgnoreCol()
+	{
+		return ignoresCollisions;
+	}
+
+	void setIgnoreCol(bool ic)
+	{
+		ignoresCollisions = ic;
+	}
 
     /// Get the number of chilren for iteration.
     int get_num_children() {

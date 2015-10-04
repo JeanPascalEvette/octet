@@ -47,7 +47,7 @@ namespace octet {
     // scene for drawing box
     ref<visual_scene> app_scene;
 	btDiscreteDynamicsWorld* world;
-
+	scene_node * ground;
   public:
     example_shapes(int argc, char **argv) : app(argc, argv) {
     }
@@ -67,12 +67,15 @@ namespace octet {
 
 
 		mat4t mat;
+		// ground
+		mat.loadIdentity();
+		mat.translate(0, -1, 0);
+		app_scene->add_shape(mat, new mesh_box(vec3(200, 1, 200)), green, false);
+		ground = app_scene->get_child(0);
+		
+
 
 		loadDataFromFile();
-      // ground
-      mat.loadIdentity();
-      mat.translate(0, -1, 0);
-      app_scene->add_shape(mat, new mesh_box(vec3(200, 1, 200)), green, false);
 
 
     }
@@ -218,7 +221,7 @@ namespace octet {
 					spring->setAngularLowerLimit(btVector3(0.f, 0.f, -1.5f));
 					spring->setAngularUpperLimit(btVector3(0.f, 0.f, 1.5f));
 
-					world->addConstraint(spring, true);
+					world->addConstraint(spring, false);
 
 					spring->enableSpring(0, true);
 					spring->setStiffness(0, 19.478f);
@@ -230,6 +233,35 @@ namespace octet {
 	}
 
 
+	void handleCollisions()
+	{
+
+		// Based on http://hamelot.co.uk/programming/using-bullet-only-for-collision-detection/
+		world->performDiscreteCollisionDetection();
+		int numManifolds = world->getDispatcher()->getNumManifolds();
+		//For each contact manifold
+		for (int i = 0; i < numManifolds; i++) {
+			btPersistentManifold* contactManifold = world->getDispatcher()->getManifoldByIndexInternal(i);
+			const btCollisionObject* obA = static_cast<const btCollisionObject*>(contactManifold->getBody0());
+			const btCollisionObject* obB = static_cast<const btCollisionObject*>(contactManifold->getBody1());
+			scene_node * currentObjA = ((scene_node*)obA->getUserPointer());
+			if (currentObjA->getIgnoreCol()) continue;
+			scene_node * currentObjB = ((scene_node*)obB->getUserPointer());
+			if (currentObjB->getIgnoreCol()) continue;
+			contactManifold->refreshContactPoints(obA->getWorldTransform(), obB->getWorldTransform());
+			int numContacts = contactManifold->getNumContacts();
+			//For each contact point in that manifold
+			for (int j = 0; j < numContacts; j++) {
+				//Get the contact information
+				btManifoldPoint& pt = contactManifold->getContactPoint(j);
+				btVector3 ptA = pt.getPositionWorldOnA();
+				btVector3 ptB = pt.getPositionWorldOnB();
+				double ptdist = pt.getDistance();
+				std::string dist = "Collision between objects at position (" + std::to_string(currentObjA->get_position().x()) + "," + std::to_string(currentObjA->get_position().y()) + "," + std::to_string(currentObjA->get_position().z()) + ") and (" + std::to_string(currentObjB->get_position().x()) + ", " + std::to_string(currentObjB->get_position().y()) + ", " + std::to_string(currentObjB->get_position().z()) + ") " + "\n";
+				printf(dist.c_str());
+			}
+		}
+	}
 	
 
     /// this is called to draw the world
@@ -243,6 +275,8 @@ namespace octet {
 
       // draw the scene
       app_scene->render((float)vx / vy);
+
+	  handleCollisions();
     }
   };
 }
