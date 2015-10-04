@@ -377,6 +377,7 @@ namespace octet { namespace scene {
           btRigidBody * rigid_body = new btRigidBody(mass, motionState, shape, inertiaTensor);
           world->addRigidBody(rigid_body);
           rigid_body->setUserPointer(node);
+
           node->set_rigid_body(rigid_body);
 		  node->setIgnoreCol(!is_dynamic);
         }

@@ -320,6 +320,10 @@ namespace octet { namespace scene {
         rigid_body->activate();
       }
 
+	  void activateForever(){
+		  rigid_body->setActivationState(DISABLE_DEACTIVATION);
+	  }
+
       /// This is the amount that the body will respond to torques in certain directions.
       void set_angular_factor(vec3_in value) {
         rigid_body->setAngularFactor(get_btVector3(value));

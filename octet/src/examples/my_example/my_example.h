@@ -31,6 +31,8 @@ namespace octet {
 	  float holesRadius;
 
 	  int xMousePos, yMousePos;
+	  int currentNode, currentNodePostInit;
+	  time_t resetTime;
 
 
 	  struct my_vertex {
@@ -53,6 +55,8 @@ namespace octet {
     /// this is called once OpenGL is initialized
     void app_init() {
 		enable_cursor();
+	  currentNode = 0;
+	  resetTime = 0;
       app_scene =  new visual_scene();
 	  holesRadius = 1.4f;
 	  xMousePos = -999, yMousePos = -999;
@@ -102,6 +106,7 @@ namespace octet {
 			  new btCapsuleShape(0.25f, player_height)
 			  );
 		   player_node = mi->get_node();
+		   currentNode++;
 	  }
 
 
@@ -113,7 +118,7 @@ namespace octet {
 	  // Generate Ground
 	  mat.loadIdentity();
 	  mat.translate(0, -1.5f, 0);
-	  app_scene->add_shape(mat, new mesh_box(vec3(100.0f, 1.0f, 100.0f)), blue, false);
+	  app_scene->add_shape(mat, new mesh_box(vec3(100.0f, 1.0f, 100.0f)), blue, false, 999.0f);
 	  // Generate field
 	  mat.loadIdentity();
 	  mat.translate(0, -1, 0);
@@ -133,7 +138,15 @@ namespace octet {
 	  mat.translate(0, -1, 20);
 	  app_scene->add_shape(mat, new mesh_box(vec3(16.0f, 3.5f, 1.0f)), darkgreen, false);
 
-	  loadDataFromFile();
+
+	  // Create scene_nodes corresponding to the meshes created
+	  scene_node *ground = app_scene->get_mesh_instance(currentNode++)->get_node();
+	  scene_node *field = app_scene->get_mesh_instance(currentNode++)->get_node();
+	  scene_node *wall = app_scene->get_mesh_instance(currentNode++)->get_node();
+	  scene_node *wall2 = app_scene->get_mesh_instance(currentNode++)->get_node();
+	  scene_node *wall3 = app_scene->get_mesh_instance(currentNode++)->get_node();
+	  scene_node *wall4 = app_scene->get_mesh_instance(currentNode++)->get_node();
+
 
 	  // Generate the 6 holes of the pool table
 	  myHoles = std::vector<ref<scene_node>>();
@@ -145,40 +158,36 @@ namespace octet {
 	  generateHole(vec3(-13.0f, 3.5f, -18.0f), holesRadius);
 
 
-	  // Create scene_nodes corresponding to the meshes created
-	  scene_node *ground = app_scene->get_mesh_instance(0)->get_node();
-	  scene_node *field = app_scene->get_mesh_instance(1)->get_node();
-	  scene_node *wall = app_scene->get_mesh_instance(2)->get_node();
-	  scene_node *wall2 = app_scene->get_mesh_instance(3)->get_node();
-	  scene_node *wall3 = app_scene->get_mesh_instance(4)->get_node();
-	  scene_node *wall4 = app_scene->get_mesh_instance(5)->get_node();
 
 
-
-	  // Give random movement to the balls (This will be modified to generate velocities based on some input data later)
 	  // Also set some friction and restitution values. Those need to be modified to make it more realistic
 	  
-	  whiteBall->set_friction(4.0f);
-	  whiteBall->set_resitution(0.75f);
+
 
 	  
 	  
 
 	  field->set_resitution(1.0f);
-	  field->set_friction(0.5f);
+	 // field->set_friction(1.0f);
+	  field->set_rolling_friction(1.0f);
 	  wall->set_resitution(1.0f);
 	  wall2->set_resitution(1.0f);
 	  wall3->set_resitution(1.0f);
 	  wall4->set_resitution(1.0f);
+
+	  currentNodePostInit = currentNode;
+	  loadDataFromFile();
 
     }
 
 
 	void loadDataFromFile()
 	{
+		currentNode = currentNodePostInit;
 		mat4t mat;
 		material *red = new material(vec4(1, 0, 0, 1));
 		material *white = new material(vec4(1, 1, 1, 1));
+
 
 		tinyxml2::XMLDocument doc;	
 		doc.LoadFile("test.xml");
@@ -193,11 +202,13 @@ namespace octet {
 		// Generate white ball (This will be modified to position the ball based on some input data later)
 		mat.loadIdentity();
 		mat.translate(whiteBallLocX, whiteBallLocY, whiteBallLocZ);
-		app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), white, true);
-		whiteBall = app_scene->get_mesh_instance(6)->get_node();
+		app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), white, true, 10.0f);
+		whiteBall = app_scene->get_mesh_instance(currentNode++)->get_node();
 		whiteBall->set_linear_velocity(vec3(whiteBallVelX, whiteBallVelY, whiteBallVelZ));
-		int currentNode = 7;
-
+		//whiteBall->set_friction(0.5f);
+		whiteBall->set_rolling_friction(0.5f);
+		whiteBall->set_resitution(0.75f);
+		whiteBall->activateForever();
 
 		redBalls = std::vector<ref<scene_node>>();
 		tinyxml2::XMLNode * el = doc.FirstChildElement("Data")->FirstChildElement("ListOfRedBall")->FirstChildElement();
@@ -212,17 +223,18 @@ namespace octet {
 			float redBallVelZ = atof(el->FirstChildElement("Velocity")->FirstChildElement("z")->GetText());
 			mat.loadIdentity();
 			mat.translate(redBallLocX, redBallLocY, redBallLocZ);
-			app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true);
+			app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true, 10.0f);
 			scene_node *redBall = app_scene->get_mesh_instance(currentNode++)->get_node();
 			redBall->set_linear_velocity(vec3(redBallVelX, redBallVelY, redBallVelZ));
-			redBall->set_friction(0.3f);
+			//redBall->set_friction(0.5f);
+			redBall->set_rolling_friction(0.5f);
 			redBall->set_resitution(0.75f);
 			redBalls.push_back(redBall);
 			el = el->NextSibling();
 
 		}
 
-
+		//whiteBall->set_linear_velocity(vec3(24, 0, 14));
 	}
 
 	/// This function generates a black disc to be used as a hole. It is based on the helix object created on example_geometry
@@ -300,6 +312,7 @@ namespace octet {
 		//Move the hole to the required location, then add it to the list of holes.
 		node->translate(position);
 		myHoles.push_back(node);
+		currentNode++;
 	}
 
 
@@ -416,13 +429,18 @@ namespace octet {
 		std::vector<ref<scene_node>>::iterator it2;
 		for (it = redBalls.begin(); it != redBalls.end();)
 		{
+			if ((*it)->get_linear_velocity().y() != 0.0f)
+			{
+				vec3 linVel = (*it)->get_linear_velocity();
+				(*it)->set_linear_velocity(vec3(linVel.x(), 0, linVel.z()));
+			}
 			bool hasBallBeenDeleted = false;
 			vec3 ballPosition = (*it)->get_position();
 			for (it2 = myHoles.begin(); it2 != myHoles.end();)
 			{
 				if (vecInsideOfCircle(ballPosition, (*it2)->get_position(), holesRadius, -0.5f))
 				{
-					//(*it)->set_position(vec3(0, -10.0f, 0)); // Hides the bal until I can figure out how to properly delete it.
+					(*it)->set_position(vec3(0, -10.0f, 0)); // Hides the bal until I can figure out how to properly delete it.
 					app_scene->delete_mesh_instance(app_scene->get_first_mesh_instance((*it)));
 					it = redBalls.erase(it);
 					hasBallBeenDeleted = true;
@@ -439,12 +457,17 @@ namespace octet {
 
 		if(whiteBall)
 		{
+			if ((whiteBall)->get_linear_velocity().y() != 0.0f)
+			{
+				vec3 linVel = (whiteBall)->get_linear_velocity();
+				(whiteBall)->set_linear_velocity(vec3(linVel.x(), 0, linVel.z()));
+			}
 			vec3 playerPosition = whiteBall->get_position();
 			for (it2 = myHoles.begin(); it2 != myHoles.end();)
 			{
 				if (vecInsideOfCircle(playerPosition, (*it2)->get_position(), holesRadius))
 				{
-					//whiteBall->set_position(vec3(0, -10.0f, 0)); // Hides the ball until I can figure out how to properly delete it.
+					whiteBall->set_position(vec3(0, -10.0f, 0)); // Hides the ball until I can figure out how to properly delete it.
 					app_scene->delete_mesh_instance(app_scene->get_first_mesh_instance(whiteBall));
 					whiteBall.~ref();
 					printf("White Ball has been deleted.");
@@ -454,6 +477,32 @@ namespace octet {
 					++it2;
 			}
 		}
+	}
+
+	void resetBoard()
+	{
+		if (resetTime < clock())
+			resetTime = clock() + 1000;
+		else
+			return;
+		if(whiteBall)
+		{
+		whiteBall->set_position(vec3(0, -10.0f, 0)); // Hides the ball until I can figure out how to properly delete it.
+		app_scene->delete_mesh_instance(app_scene->get_first_mesh_instance(whiteBall));
+		whiteBall.~ref();
+		printf("White Ball has been deleted.");
+		}
+		std::vector<ref<scene_node>>::iterator it;
+		for (it = redBalls.begin(); it != redBalls.end();)
+		{
+			(*it)->set_position(vec3(0, -10.0f, 0)); // Hides the ball until I can figure out how to properly delete it.
+			app_scene->delete_mesh_instance(app_scene->get_first_mesh_instance((*it)));
+			it = redBalls.erase(it);
+			printf("Ball has been deleted.");
+		}
+
+		loadDataFromFile();
+
 	}
 
 
@@ -466,38 +515,53 @@ namespace octet {
 	/// this is called to handle inputs
 	void handleInputs()
 	{
-		eraseRay();
-		int newX, newY;
-		get_mouse_pos(newX, newY);
-		vec3 mouseWorldPos = convertScreenToWorld(vec3(newX, 3, newY));
-		if (is_key_down(key_lmb))
-			printf("X: %d Y: %d\n X2: %f Y2: %f\n\n", newX, newY, mouseWorldPos.x(), mouseWorldPos.z());
-		if (is_key_down(key_lmb) && xMousePos == -999 && yMousePos == -999
-			&& vecInsideOfCircle(vec3(mouseWorldPos.x(), 3, mouseWorldPos.z()), whiteBall->get_position(), 1))
+		if (!whiteBall) return;
+
+		if (is_key_down(key_ctrl))
 		{
-			get_mouse_pos(xMousePos, yMousePos);
+			whiteBall->set_linear_velocity(vec3(24,0,14));
+			return;
 		}
-		else if (!is_key_down(key_lmb) && xMousePos != -999 && yMousePos != -999)
+		else if (is_key_down(key_space))
 		{
-
-			vec2 dirVector = vec2(newX - xMousePos, newY - yMousePos);
-			int vectorLength = sqrt(pow(dirVector.x(),2) + pow(dirVector.y(),2));
-			vec2 unitVector = dirVector / vectorLength;
-
-			if (vectorLength > 500)
-				vectorLength = 50;
-			else
-				vectorLength /= 10;
-
-			if (whiteBall)
-			whiteBall->set_linear_velocity(-1*vec3(unitVector.x(), 0 , unitVector.y()) * vectorLength);
-
-			xMousePos = -999;
-			yMousePos = -999;
+			resetBoard();
+			return;
 		}
-		else if (is_key_down(key_lmb) && xMousePos != -999 && yMousePos != -999)
+		else 
 		{
-			generateRay(convertScreenToWorld(vec3(xMousePos, 3, yMousePos)), convertScreenToWorld(vec3(newX, 3, newY)), 0.1f);
+			eraseRay();
+			int newX, newY;
+			get_mouse_pos(newX, newY);
+			vec3 mouseWorldPos = convertScreenToWorld(vec3(newX, 3, newY));
+			if (is_key_down(key_lmb))
+				printf("X: %d Y: %d\n X2: %f Y2: %f\n\n", newX, newY, mouseWorldPos.x(), mouseWorldPos.z());
+			if (is_key_down(key_lmb) && xMousePos == -999 && yMousePos == -999
+				&& vecInsideOfCircle(vec3(mouseWorldPos.x(), 3, mouseWorldPos.z()), whiteBall->get_position(), 1))
+			{
+				get_mouse_pos(xMousePos, yMousePos);
+			}
+			else if (!is_key_down(key_lmb) && xMousePos != -999 && yMousePos != -999)
+			{
+
+				vec2 dirVector = vec2(newX - xMousePos, newY - yMousePos);
+				int vectorLength = sqrt(pow(dirVector.x(), 2) + pow(dirVector.y(), 2));
+				vec2 unitVector = dirVector / vectorLength;
+
+				if (vectorLength > 700)
+					vectorLength = 70;
+				else
+					vectorLength /= 10;
+
+				if (whiteBall)
+					whiteBall->set_linear_velocity(-1 * vec3(unitVector.x(), 0, unitVector.y()) * vectorLength);
+
+				xMousePos = -999;
+				yMousePos = -999;
+			}
+			else if (is_key_down(key_lmb) && xMousePos != -999 && yMousePos != -999)
+			{
+				generateRay(convertScreenToWorld(vec3(xMousePos, 3, yMousePos)), convertScreenToWorld(vec3(newX, 3, newY)), 0.1f);
+			}
 		}
 	}
 
@@ -507,14 +571,6 @@ namespace octet {
       get_viewport_size(vx, vy);
       app_scene->begin_render(vx, vy);
 
-	  // Player_node is only initialized when on MOBILE camera type
-	  if (player_node)
-	  {
-		  scene_node *camera_node = the_camera->get_node();
-		  mat4t &camera_to_world = camera_node->access_nodeToParent();
-		  mouse_look_helper.update(camera_to_world);
-		  fps_helper.update(player_node, camera_node);
-	  }
 
       // update matrices. assume 30 fps.
       app_scene->update(1.0f/30);
@@ -524,11 +580,21 @@ namespace octet {
       app_scene->render((float)vx / vy);
 	  
 
+	  // Player_node is only initialized when on MOBILE camera type
+	  if (player_node)
+	  {
+		  scene_node *camera_node = the_camera->get_node();
+		  mat4t &camera_to_world = camera_node->access_nodeToParent();
+		  mouse_look_helper.update(camera_to_world);
+		  fps_helper.update(player_node, camera_node);
+	  }
 	  // handle balls in pockets
 	  checkIfBallIsInPocket();
 
 	  handleInputs();
 
+	  //std::string whiteBallHeight = std::to_string(whiteBall->get_position().y()) + " \n";
+	  //printf(whiteBallHeight.c_str());
     }
   };
 }
