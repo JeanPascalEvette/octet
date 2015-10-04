@@ -483,6 +483,7 @@ namespace octet {
 		else
 			return;
 
+		whiteBall->set_position(vec3(0, -10.0f, 0)); // Hides the ball until I can figure out how to properly delete it.
 		app_scene->delete_mesh_instance(app_scene->get_first_mesh_instance(whiteBall));
 		whiteBall.~ref();
 		printf("White Ball has been deleted.");
@@ -490,6 +491,7 @@ namespace octet {
 		std::vector<ref<scene_node>>::iterator it;
 		for (it = redBalls.begin(); it != redBalls.end();)
 		{
+			(*it)->set_position(vec3(0, -10.0f, 0)); // Hides the ball until I can figure out how to properly delete it.
 			app_scene->delete_mesh_instance(app_scene->get_first_mesh_instance((*it)));
 			it = redBalls.erase(it);
 			printf("Ball has been deleted.");
