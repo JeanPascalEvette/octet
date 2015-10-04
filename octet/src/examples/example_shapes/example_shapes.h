@@ -6,6 +6,7 @@
 //
 
 #include "tinyxml2.h"
+
 namespace octet {
 
 
@@ -63,7 +64,7 @@ namespace octet {
 		world = app_scene->get_world();
 		app_scene->create_default_camera_and_lights();
 		app_scene->get_camera_instance(0)->get_node()->translate(vec3(5, 4, 15));
-
+		
 
 		material *green = new material(vec4(0, 1, 0, 1));
 
@@ -264,6 +265,7 @@ namespace octet {
 				double ptdist = pt.getDistance();
 				std::string dist = "Collision between objects at position (" + std::to_string(currentObjA->get_position().x()) + "," + std::to_string(currentObjA->get_position().y()) + "," + std::to_string(currentObjA->get_position().z()) + ") and (" + std::to_string(currentObjB->get_position().x()) + ", " + std::to_string(currentObjB->get_position().y()) + ", " + std::to_string(currentObjB->get_position().z()) + ") " + "\n";
 				printf(dist.c_str());
+				
 			}
 		}
 	}
