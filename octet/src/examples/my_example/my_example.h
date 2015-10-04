@@ -32,6 +32,8 @@ namespace octet {
 
 	  int xMousePos, yMousePos;
 	  int currentNode, currentNodePostInit;
+	  time_t resetTime;
+
 
 	  struct my_vertex {
 		  vec3p pos;
@@ -54,6 +56,7 @@ namespace octet {
     void app_init() {
 		enable_cursor();
 	  currentNode = 0;
+	  resetTime = 0;
       app_scene =  new visual_scene();
 	  holesRadius = 1.4f;
 	  xMousePos = -999, yMousePos = -999;
@@ -70,7 +73,7 @@ namespace octet {
 
 
 	  // Set the camera depending on camera type
-	  CameraType CameraPosition = CameraType::MOBILE;
+	  CameraType CameraPosition = CameraType::TOPDOWN;
 	  if (CameraPosition == CameraType::TOPDOWN)
 	  {
 		  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 60, 0));
@@ -115,7 +118,7 @@ namespace octet {
 	  // Generate Ground
 	  mat.loadIdentity();
 	  mat.translate(0, -1.5f, 0);
-	  app_scene->add_shape(mat, new mesh_box(vec3(100.0f, 1.0f, 100.0f)), blue, false);
+	  app_scene->add_shape(mat, new mesh_box(vec3(100.0f, 1.0f, 100.0f)), blue, false, 999.0f);
 	  // Generate field
 	  mat.loadIdentity();
 	  mat.translate(0, -1, 0);
@@ -157,7 +160,6 @@ namespace octet {
 
 
 
-	  // Give random movement to the balls (This will be modified to generate velocities based on some input data later)
 	  // Also set some friction and restitution values. Those need to be modified to make it more realistic
 	  
 
@@ -187,6 +189,9 @@ namespace octet {
 		material *red = new material(vec4(1, 0, 0, 1));
 		material *white = new material(vec4(1, 1, 1, 1));
 
+
+
+
 		tinyxml2::XMLDocument doc;	
 		doc.LoadFile("test.xml");
 		float whiteBallLocX = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("x")->GetText());
@@ -200,7 +205,7 @@ namespace octet {
 		// Generate white ball (This will be modified to position the ball based on some input data later)
 		mat.loadIdentity();
 		mat.translate(whiteBallLocX, whiteBallLocY, whiteBallLocZ);
-		app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), white, true);
+		app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), white, true, 10.0f);
 		whiteBall = app_scene->get_mesh_instance(currentNode++)->get_node();
 		whiteBall->set_linear_velocity(vec3(whiteBallVelX, whiteBallVelY, whiteBallVelZ));
 
@@ -218,7 +223,7 @@ namespace octet {
 			float redBallVelZ = atof(el->FirstChildElement("Velocity")->FirstChildElement("z")->GetText());
 			mat.loadIdentity();
 			mat.translate(redBallLocX, redBallLocY, redBallLocZ);
-			app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true);
+			app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true, 10.0f);
 			scene_node *redBall = app_scene->get_mesh_instance(currentNode++)->get_node();
 			redBall->set_linear_velocity(vec3(redBallVelX, redBallVelY, redBallVelZ));
 			redBall->set_friction(0.3f);
@@ -465,6 +470,11 @@ namespace octet {
 
 	void resetBoard()
 	{
+		if (resetTime < clock())
+			resetTime = clock() + 1000;
+		else
+			return;
+
 		app_scene->delete_mesh_instance(app_scene->get_first_mesh_instance(whiteBall));
 		whiteBall.~ref();
 		printf("White Ball has been deleted.");
@@ -478,6 +488,8 @@ namespace octet {
 		}
 
 		loadDataFromFile();
+		whiteBall->set_friction(4.0f);
+		whiteBall->set_resitution(0.75f);
 
 	}
 
