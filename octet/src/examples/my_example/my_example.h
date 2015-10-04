@@ -190,8 +190,6 @@ namespace octet {
 		material *white = new material(vec4(1, 1, 1, 1));
 
 
-
-
 		tinyxml2::XMLDocument doc;	
 		doc.LoadFile("test.xml");
 		float whiteBallLocX = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("x")->GetText());
@@ -205,7 +203,7 @@ namespace octet {
 		// Generate white ball (This will be modified to position the ball based on some input data later)
 		mat.loadIdentity();
 		mat.translate(whiteBallLocX, whiteBallLocY, whiteBallLocZ);
-		app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), white, true, 10.0f);
+		app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), white, true, 100.0f);
 		whiteBall = app_scene->get_mesh_instance(currentNode++)->get_node();
 		whiteBall->set_linear_velocity(vec3(whiteBallVelX, whiteBallVelY, whiteBallVelZ));
 
@@ -233,7 +231,7 @@ namespace octet {
 
 		}
 
-
+		whiteBall->set_linear_velocity(vec3(24, 0, 14));
 	}
 
 	/// This function generates a black disc to be used as a hole. It is based on the helix object created on example_geometry
@@ -428,13 +426,18 @@ namespace octet {
 		std::vector<ref<scene_node>>::iterator it2;
 		for (it = redBalls.begin(); it != redBalls.end();)
 		{
+			if ((*it)->get_linear_velocity().y() != 0.0f)
+			{
+				vec3 linVel = (*it)->get_linear_velocity();
+				(*it)->set_linear_velocity(vec3(linVel.x(), 0, linVel.z()));
+			}
 			bool hasBallBeenDeleted = false;
 			vec3 ballPosition = (*it)->get_position();
 			for (it2 = myHoles.begin(); it2 != myHoles.end();)
 			{
 				if (vecInsideOfCircle(ballPosition, (*it2)->get_position(), holesRadius, -0.5f))
 				{
-					//(*it)->set_position(vec3(0, -10.0f, 0)); // Hides the bal until I can figure out how to properly delete it.
+					(*it)->set_position(vec3(0, -10.0f, 0)); // Hides the bal until I can figure out how to properly delete it.
 					app_scene->delete_mesh_instance(app_scene->get_first_mesh_instance((*it)));
 					it = redBalls.erase(it);
 					hasBallBeenDeleted = true;
@@ -451,12 +454,17 @@ namespace octet {
 
 		if(whiteBall)
 		{
+			if ((whiteBall)->get_linear_velocity().y() != 0.0f)
+			{
+				vec3 linVel = (whiteBall)->get_linear_velocity();
+				(whiteBall)->set_linear_velocity(vec3(linVel.x(), 0, linVel.z()));
+			}
 			vec3 playerPosition = whiteBall->get_position();
 			for (it2 = myHoles.begin(); it2 != myHoles.end();)
 			{
 				if (vecInsideOfCircle(playerPosition, (*it2)->get_position(), holesRadius))
 				{
-					//whiteBall->set_position(vec3(0, -10.0f, 0)); // Hides the ball until I can figure out how to properly delete it.
+					whiteBall->set_position(vec3(0, -10.0f, 0)); // Hides the ball until I can figure out how to properly delete it.
 					app_scene->delete_mesh_instance(app_scene->get_first_mesh_instance(whiteBall));
 					whiteBall.~ref();
 					printf("White Ball has been deleted.");
@@ -508,7 +516,7 @@ namespace octet {
 			resetBoard();
 			return;
 		}
-
+		return;
 		eraseRay();
 		int newX, newY;
 		get_mouse_pos(newX, newY);
