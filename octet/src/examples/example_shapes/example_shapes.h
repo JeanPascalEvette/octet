@@ -56,6 +56,7 @@ namespace octet {
 	vec3 lastCol;
 
 	std::vector<ref<scene_node>> myObjects;
+	std::vector<btRigidBody *> listOfRB;
 
   public:
     example_shapes(int argc, char **argv) : app(argc, argv) {
@@ -111,7 +112,7 @@ namespace octet {
 			tinyxml2::XMLNode * el = doc.FirstChildElement("Data")->FirstChildElement("ShapeList")->FirstChildElement();
 			std::vector<predef_shape> listOfShapes = std::vector<predef_shape>();
 			std::vector<predef_link> listOfLinks = std::vector<predef_link>();
-			std::vector<btRigidBody *> listOfRB = std::vector<btRigidBody *>();
+			listOfRB = std::vector<btRigidBody *>();
 
 			//Generate list of Shapes
 			while (el != nullptr)
@@ -316,13 +317,21 @@ namespace octet {
 		std::vector<ref<scene_node>>::iterator it;
 		for (it = myObjects.begin(); it != myObjects.end();)
 		{
-			(*it)->set_position(vec3(0, -10.0f, 0)); // Hides the ball until I can figure out how to properly delete it.
 			app_scene->delete_mesh_instance(app_scene->get_first_mesh_instance((*it)));
+
 			it = myObjects.erase(it);
 			printf("Object has been deleted.");
 		}
 
-		loadDataFromFile();
+		std::vector<btRigidBody *>::iterator it2;
+		for (it2 = listOfRB.begin(); it2 != listOfRB.end();)
+		{
+			world->removeRigidBody((*it2));
+				it2 = listOfRB.erase(it2);
+			printf("Object has been deleted.");
+		}
+
+	loadDataFromFile();
 	}
 
     /// this is called to draw the world
