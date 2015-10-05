@@ -58,7 +58,6 @@ namespace octet {
 		enable_cursor();
 	  currentNode = 0;
 	  resetTime = 0;
-	  attemptLimit = 1;
       app_scene =  new visual_scene();
 	  holesRadius = 1.4f;
 	  xMousePos = -999, yMousePos = -999;
@@ -193,6 +192,7 @@ namespace octet {
 
 		tinyxml2::XMLDocument doc;	
 		doc.LoadFile("test.xml");
+		attemptLimit = atof(doc.FirstChildElement("Data")->FirstChildElement("AttemptLimit")->GetText());;
 		float whiteBallLocX = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("x")->GetText());
 		float whiteBallLocY = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("y")->GetText());
 		float whiteBallLocZ = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("z")->GetText());
@@ -517,16 +517,16 @@ namespace octet {
 	/// this is called to handle inputs
 	void handleInputs()
 	{
+		if (is_key_down(key_space))
+		{
+			resetBoard();
+			return;
+		}
 		if (!whiteBall) return;
 		if (attemptLimit <= 0) return;
 		if (is_key_down(key_ctrl))
 		{
 			whiteBall->set_linear_velocity(vec3(24,0,14));
-			return;
-		}
-		else if (is_key_down(key_space))
-		{
-			resetBoard();
 			return;
 		}
 		else 

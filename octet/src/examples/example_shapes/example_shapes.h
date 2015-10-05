@@ -14,7 +14,6 @@ namespace octet {
 	//Container classes to store data imported from XML file
 	class predef_shape {
 
-		int ID;
 		string type;
 		string color;
 		vec3 location;
@@ -22,9 +21,8 @@ namespace octet {
 		float weight;
 
 	public :
-		predef_shape(int _id, string _type, vec3 _location, std::vector<vec3> _rotation, float _weight, string _color) { ID = _id; type = _type; location = _location; rotation = _rotation; weight = _weight; color = _color; }
+		predef_shape(string _type, vec3 _location, std::vector<vec3> _rotation, float _weight, string _color) { type = _type; location = _location; rotation = _rotation; weight = _weight; color = _color; }
 
-		int getId() { return ID; }
 		string getType() { return type; }
 		vec3 getLoc() { return location; }
 		std::vector<vec3> getRot() { return rotation; }
@@ -115,7 +113,6 @@ namespace octet {
 			//Generate list of Shapes
 			while (el != nullptr)
 			{
-				int ID = atoi(el->FirstChildElement("ID")->GetText());
 				string type = el->FirstChildElement("Type")->GetText();
 				vec3 location = vec3(atof(el->FirstChildElement("Location")->FirstChildElement("x")->GetText()), atof(el->FirstChildElement("Location")->FirstChildElement("y")->GetText()), atof(el->FirstChildElement("Location")->FirstChildElement("z")->GetText()));
 			
@@ -130,7 +127,7 @@ namespace octet {
 				float weight = atoi(el->FirstChildElement("Weight")->GetText());
 				string color = el->FirstChildElement("Color")->GetText();
 
-				predef_shape myShape = predef_shape(ID, type, location, myRotations, weight, color);
+				predef_shape myShape = predef_shape(type, location, myRotations, weight, color);
 				listOfShapes.push_back(myShape);
 				el = el->NextSibling();
 			}
@@ -198,11 +195,12 @@ namespace octet {
 			//Use list of links to generate constraints
 			for (int currentLink = 0; currentLink < listOfLinks.size(); currentLink++)
 			{
-				predef_shape shape1 = listOfShapes[listOfLinks[currentLink].getID1() - 1];
-				predef_shape shape2 = listOfShapes[listOfLinks[currentLink].getID2() - 1];
+				if (listOfShapes.size() <= listOfLinks[currentLink].getID1() || listOfShapes.size() <= listOfLinks[currentLink].getID2())
+					continue;
+				predef_shape shape1 = listOfShapes[listOfLinks[currentLink].getID1()];
+				predef_shape shape2 = listOfShapes[listOfLinks[currentLink].getID2()];
 
 				//Make sure that both shapes exist
-				if (!listOfRB[shape1.getId() - 1] || !listOfRB[shape2.getId() - 1]) continue;
 				btVector3 axis = btVector3(1, 0, 0);
 
 				if (listOfLinks[currentLink].getAxis() == "X")
@@ -215,7 +213,7 @@ namespace octet {
 
 				if (listOfLinks[currentLink].getType() == "Hinge")
 				{
-					btHingeConstraint* hinge = new btHingeConstraint(*listOfRB[listOfLinks[currentLink].getID1() - 1], *listOfRB[listOfLinks[currentLink].getID2() - 1], btVector3(shape1.getLoc().x(), shape1.getLoc().y(), shape1.getLoc().z()), btVector3(shape2.getLoc().x(), shape2.getLoc().y(), shape2.getLoc().z()), axis, axis);
+					btHingeConstraint* hinge = new btHingeConstraint(*listOfRB[listOfLinks[currentLink].getID1()], *listOfRB[listOfLinks[currentLink].getID2()], btVector3(shape1.getLoc().x(), shape1.getLoc().y(), shape1.getLoc().z()), btVector3(shape2.getLoc().x(), shape2.getLoc().y(), shape2.getLoc().z()), axis, axis);
 					hinge->setLimit(0, 0.5f);
 					world->addConstraint(hinge, true);
 
@@ -227,7 +225,7 @@ namespace octet {
 					frameInA.setOrigin(btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f)));
 					frameInB = btTransform::getIdentity();
 					frameInB.setOrigin(btVector3(btScalar(0.0f), btScalar(-5.0f), btScalar(0.0f)));
-					btGeneric6DofSpringConstraint* spring = new btGeneric6DofSpringConstraint(*listOfRB[listOfLinks[currentLink].getID1() - 1], *listOfRB[listOfLinks[currentLink].getID2() - 1], frameInA, frameInB, true);
+					btGeneric6DofSpringConstraint* spring = new btGeneric6DofSpringConstraint(*listOfRB[listOfLinks[currentLink].getID1()], *listOfRB[listOfLinks[currentLink].getID2()], frameInA, frameInB, true);
 
 					//Some of those values would idealy be parameters in the XML file
 					spring->setLinearUpperLimit(btVector3(5., 0., 0.));
