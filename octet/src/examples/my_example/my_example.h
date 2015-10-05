@@ -34,6 +34,7 @@ namespace octet {
 	  int currentNode, currentNodePostInit;
 	  time_t resetTime;
 
+	  int attemptLimit;
 
 	  struct my_vertex {
 		  vec3p pos;
@@ -57,6 +58,7 @@ namespace octet {
 		enable_cursor();
 	  currentNode = 0;
 	  resetTime = 0;
+	  attemptLimit = 1;
       app_scene =  new visual_scene();
 	  holesRadius = 1.4f;
 	  xMousePos = -999, yMousePos = -999;
@@ -516,7 +518,7 @@ namespace octet {
 	void handleInputs()
 	{
 		if (!whiteBall) return;
-
+		if (attemptLimit <= 0) return;
 		if (is_key_down(key_ctrl))
 		{
 			whiteBall->set_linear_velocity(vec3(24,0,14));
@@ -554,6 +556,7 @@ namespace octet {
 
 				if (whiteBall)
 					whiteBall->set_linear_velocity(-1 * vec3(unitVector.x(), 0, unitVector.y()) * vectorLength);
+				attemptLimit--;
 
 				xMousePos = -999;
 				yMousePos = -999;
