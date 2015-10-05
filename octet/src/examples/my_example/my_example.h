@@ -243,7 +243,7 @@ namespace octet {
 	void generateHole(vec3 position, float radius)
 	{
 		// use a shader that just outputs the color_ attribute.
-		param_shader *shader = new param_shader("shaders/default.vs", "shaders/simple_color.fs");
+		param_shader *shader = new param_shader("shaders/default.vs", "shaders/custom.fs");
 		material *black = new material(vec4(0, 0, 0, 1), shader);
 
 
