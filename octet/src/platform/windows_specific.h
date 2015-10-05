@@ -147,7 +147,7 @@ namespace octet {
       HINSTANCE instance = (HINSTANCE)GetModuleHandle(0);
       HBRUSH brush = (HBRUSH) GetStockObject(NULL_BRUSH);
       HICON icon = LoadIcon(0, IDI_ASTERISK);
-      HCURSOR cursor = LoadCursor(0, IDC_ARROW);
+      HCURSOR cursor = LoadCursor(0, IDC_HAND);
 
       static WNDCLASSW wndclass = {
         CS_HREDRAW | CS_VREDRAW, DefWindowProc, 0, 0, instance,
@@ -161,6 +161,8 @@ namespace octet {
         WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 768, 768,
         NULL, NULL, wndclass.hInstance, (LPVOID)this
       );
+
+	  SetCursor(cursor);
 
       map()[window_handle] = this;
 
