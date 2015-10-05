@@ -55,6 +55,8 @@ namespace octet {
 	FMOD::Channel* bounceChannel;
 	vec3 lastCol;
 
+	std::vector<ref<scene_node>> myObjects;
+
   public:
     example_shapes(int argc, char **argv) : app(argc, argv) {
     }
@@ -64,6 +66,7 @@ namespace octet {
 
     /// this is called once OpenGL is initialized
 	void app_init() {
+		myObjects = std::vector<ref<scene_node>>();
 		lastCol = vec3(0);
 		setUpSound();
 
@@ -176,18 +179,20 @@ namespace octet {
 						mat.rotateZ(myRot.z());
 				}
 
+				scene_node* node = NULL;
 				if (listOfShapes[curentShape].getType() == "Sphere")
 				{
-					myRB = app_scene->createNewObjectWithRigidBody(mat, myMat, new mesh_sphere(vec3(2, 2, 2), 2), listOfShapes[curentShape].getWeight(), true);
+					node = app_scene->createNewObjectWithRigidBody(mat, myMat, new mesh_sphere(vec3(2, 2, 2), 2), listOfShapes[curentShape].getWeight(), true, &myRB);
 				}
 				else if (listOfShapes[curentShape].getType() == "Box")
 				{
-					myRB = app_scene->createNewObjectWithRigidBody(mat, myMat, new mesh_box(vec3(2, 2, 2)), listOfShapes[curentShape].getWeight(), true);
+					node = app_scene->createNewObjectWithRigidBody(mat, myMat, new mesh_box(vec3(2, 2, 2)), listOfShapes[curentShape].getWeight(), true, &myRB);
 				}
 				else if (listOfShapes[curentShape].getType() == "Cylinder")
 				{
-					myRB = app_scene->createNewObjectWithRigidBody(mat, myMat, new mesh_cylinder(zcylinder(vec3(0, 0, 0), 2, 4)), listOfShapes[curentShape].getWeight(), true);
+					node = app_scene->createNewObjectWithRigidBody(mat, myMat, new mesh_cylinder(zcylinder(vec3(0, 0, 0), 2, 4)), listOfShapes[curentShape].getWeight(), true, &myRB);
 				}
+				myObjects.push_back(node);
 				listOfRB.push_back(myRB);
 			}
 

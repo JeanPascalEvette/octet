@@ -303,11 +303,10 @@ namespace octet { namespace scene {
 		return world;
 	}
 	
-	btRigidBody* createNewObjectWithRigidBody(mat4t_in mat, material *myMaterial, mesh* msh, float mass, bool is_dynamic)
+	scene_node* createNewObjectWithRigidBody(mat4t_in mat, material *myMaterial, mesh* msh, float mass, bool is_dynamic, btRigidBody** rigidBody)
 	{
-		btRigidBody* rigidBody = NULL;
 		btCollisionShape* shape = NULL;
-		scene_node *node = new scene_node(this);
+		scene_node* node = new scene_node(this);
 		node->access_nodeToParent() = mat;
 
 		mesh_instance *result = NULL;
@@ -334,14 +333,14 @@ namespace octet { namespace scene {
 
 			if (is_dynamic) shape->calculateLocalInertia(mass, inertiaTensor);
 
-			rigidBody = new btRigidBody(mass, motionState, shape, inertiaTensor);
-			world->addRigidBody(rigidBody);
-			rigidBody->setUserPointer(node);
-			node->set_rigid_body(rigidBody);
+			(*rigidBody) = new btRigidBody(mass, motionState, shape, inertiaTensor);
+			world->addRigidBody((*rigidBody));
+			(*rigidBody)->setUserPointer(node);
+			node->set_rigid_body((*rigidBody));
 			node->setIgnoreCol(!is_dynamic);
 		}
 	#endif
-		return rigidBody;
+		return node;
 	}
 
 
