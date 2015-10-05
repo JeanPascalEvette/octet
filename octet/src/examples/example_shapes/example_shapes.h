@@ -300,7 +300,30 @@ namespace octet {
 		bounceChannel = NULL;
 
 	}
+	/// this is called to handle inputs
+	void handleInputs()
+	{
+		if (is_key_down(key_space))
+		{
+			reset();
+			return;
+		}
+	}
 
+	void reset()
+	{
+
+		std::vector<ref<scene_node>>::iterator it;
+		for (it = myObjects.begin(); it != myObjects.end();)
+		{
+			(*it)->set_position(vec3(0, -10.0f, 0)); // Hides the ball until I can figure out how to properly delete it.
+			app_scene->delete_mesh_instance(app_scene->get_first_mesh_instance((*it)));
+			it = myObjects.erase(it);
+			printf("Object has been deleted.");
+		}
+
+		loadDataFromFile();
+	}
 
     /// this is called to draw the world
     void draw_world(int x, int y, int w, int h) {
@@ -315,6 +338,9 @@ namespace octet {
       app_scene->render((float)vx / vy);
 
 	  handleCollisions();
+
+	  handleInputs();
+
     }
   };
 }
