@@ -6,7 +6,7 @@
 //
 
 #include "tinyxml2.h"
-
+ 
 namespace octet {
   /// Scene containing a box with octet.
   class my_example : public app {
