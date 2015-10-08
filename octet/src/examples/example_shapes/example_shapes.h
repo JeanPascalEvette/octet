@@ -225,7 +225,7 @@ namespace octet {
 
 				}
 				else if (listOfLinks[currentLink].getType() == "Spring")
-				{
+				{ 
 					btTransform frameInA, frameInB;
 					frameInA = btTransform::getIdentity();
 					frameInA.setOrigin(btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f)));
