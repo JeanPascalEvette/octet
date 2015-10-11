@@ -242,8 +242,8 @@ namespace octet {
 
 					world->addConstraint(spring, false);
 
-					spring->enableSpring(springIndex++, true);
-					spring->setStiffness(0, 19.478f);
+					spring->enableSpring(springIndex, true);
+					spring->setStiffness(springIndex++, 19.478f);
 
 				}
 			}
