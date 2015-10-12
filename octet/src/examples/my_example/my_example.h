@@ -123,21 +123,21 @@ namespace octet {
 	  // Generate field
 	  mat.loadIdentity();
 	  mat.translate(0, -1, 0);
-	  app_scene->add_shape(mat, new mesh_box(vec3(16.0f, 1.0f, 20.0f)), green, false);
+	  app_scene->add_shape(mat, new mesh_box(vec3(16.0f, 1.0f, 20.0f)), green, false, 999.0f);
 
 	  // Generate 4 Walls of pool table
 	  mat.loadIdentity();
 	  mat.translate(15, -1, 0);
-	  app_scene->add_shape(mat, new mesh_box(vec3(1.0f, 3.5f, 21.0f)), darkgreen, false);
+	  app_scene->add_shape(mat, new mesh_box(vec3(1.0f, 3.5f, 21.0f)), darkgreen, false, 999.0f);
 	  mat.loadIdentity();
 	  mat.translate(-15, -1, 0);
-	  app_scene->add_shape(mat, new mesh_box(vec3(1.0f, 3.5f, 21.0f)), darkgreen, false);
+	  app_scene->add_shape(mat, new mesh_box(vec3(1.0f, 3.5f, 21.0f)), darkgreen, false, 999.0f);
 	  mat.loadIdentity();
 	  mat.translate(0, -1, -20);
-	  app_scene->add_shape(mat, new mesh_box(vec3(16.0f, 3.5f, 1.0f)), darkgreen, false);
+	  app_scene->add_shape(mat, new mesh_box(vec3(16.0f, 3.5f, 1.0f)), darkgreen, false, 999.0f);
 	  mat.loadIdentity();
 	  mat.translate(0, -1, 20);
-	  app_scene->add_shape(mat, new mesh_box(vec3(16.0f, 3.5f, 1.0f)), darkgreen, false);
+	  app_scene->add_shape(mat, new mesh_box(vec3(16.0f, 3.5f, 1.0f)), darkgreen, false, 999.0f);
 
 
 	  // Create scene_nodes corresponding to the meshes created
@@ -243,7 +243,8 @@ namespace octet {
 	void generateHole(vec3 position, float radius)
 	{
 		// use a shader that just outputs the color_ attribute.
-		param_shader *shader = new param_shader("shaders/default.vs", "shaders/custom.fs");
+		param_shader *shader = new param_shader("shaders/default.vs", "shaders/hole.fs");
+		
 		material *black = new material(vec4(0, 0, 0, 1), shader);
 
 
