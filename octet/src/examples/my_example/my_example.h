@@ -244,8 +244,11 @@ namespace octet {
 	{
 		// use a shader that just outputs the color_ attribute.
 		param_shader *shader = new param_shader("shaders/default.vs", "shaders/hole.fs");
-		
+
 		material *black = new material(vec4(0, 0, 0, 1), shader);
+		float val = radius * 2;
+		black->add_uniform(&val, atom_height, GL_FLOAT, 1, param::stage_fragment);
+		black->add_uniform(&position, atom_pos, GL_FLOAT_VEC3, 1, param::stage_fragment);
 
 
 		mesh *hole = new mesh();
