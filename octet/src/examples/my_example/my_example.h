@@ -29,6 +29,7 @@ namespace octet {
 	  std::vector<ref<scene_node>> redBalls;
 	  std::vector<ref<scene_node>> myHoles;
 	  float holesRadius;
+	  int currentLevel;
 
 	  int xMousePos, yMousePos;
 	  int currentNode, currentNodePostInit;
@@ -56,6 +57,7 @@ namespace octet {
     /// this is called once OpenGL is initialized
     void app_init() {
 		enable_cursor();
+		currentLevel = 1;
 	  currentNode = 0;
 	  resetTime = 0;
       app_scene =  new visual_scene();
@@ -188,10 +190,13 @@ namespace octet {
 		mat4t mat;
 		material *red = new material(vec4(1, 0, 0, 1));
 		material *white = new material(vec4(1, 1, 1, 1));
-
+		char levelName[30];
+		strcpy(levelName, "Level");
+		strcat(levelName, std::to_string(currentLevel).c_str());
+		strcat(levelName, ".xml");
 
 		tinyxml2::XMLDocument doc;	
-		doc.LoadFile("test.xml");
+		doc.LoadFile(levelName);
 		attemptLimit = atof(doc.FirstChildElement("Data")->FirstChildElement("AttemptLimit")->GetText());;
 		float whiteBallLocX = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("x")->GetText());
 		float whiteBallLocY = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("y")->GetText());
@@ -426,6 +431,12 @@ namespace octet {
 		float zMember = (position.z() - circlePos.z())*(position.z() - circlePos.z());
 
 		return (xMember + zMember <= (circleRadius*circleRadius));
+	}
+
+	void goToNextLevel()
+	{
+		currentLevel++;
+		resetBoard();
 	}
 
 	/// This function checks whether any ball is in a pocket and removes in from play if that is the case.

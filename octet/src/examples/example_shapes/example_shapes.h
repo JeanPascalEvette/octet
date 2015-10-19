@@ -135,7 +135,7 @@ namespace octet {
 				listOfShapes.push_back(myShape);
 				el = el->NextSibling();
 			}
-
+			
 			//Generate list of links
 			el = doc.FirstChildElement("Data")->FirstChildElement("LinkList")->FirstChildElement();
 			while (el != nullptr)
@@ -146,10 +146,13 @@ namespace octet {
 				string axis = el->FirstChildElement("Axis")->GetText();
 
 
+
+
 				predef_link myLink = predef_link(linkType, ID1, ID2, axis);
 				listOfLinks.push_back(myLink);
 				el = el->NextSibling();
 			}
+
 
 			//Use list of shapes to generate actual shapes in OpenGL
 			for (int curentShape = 0; curentShape < listOfShapes.size(); curentShape++)
