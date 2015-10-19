@@ -17,6 +17,8 @@ namespace octet {
 	  helper_fps_controller fps_helper;
 	  ref<camera_instance> the_camera;
 	  ref<scene_node> player_node;
+	  ref<text_overlay> myText;
+	  ref<mesh_text> myInfoText;
 	  enum CameraType {
 		  TOPDOWN,
 		  SIDEWAYS,
@@ -74,6 +76,10 @@ namespace octet {
 	  the_camera->get_node()->translate(vec3(0, 0, -35)); // Have to move the camera for it to be centered
 	  mesh_instance *mi;
 
+	  aabb bb(vec3(64.5f, -200.0f, 0.0f), vec3(256, 64, 0));
+	  myText = new text_overlay();
+	  myInfoText = new mesh_text(myText->get_default_font(), "", &bb);
+	  myText->add_mesh_text(myInfoText);
 
 	  // Set the camera depending on camera type
 	  CameraType CameraPosition = CameraType::TOPDOWN;
@@ -586,6 +592,28 @@ namespace octet {
 		}
 	}
 
+	void updateText(int vx, int vy)
+	{
+		myInfoText->clear();
+
+		// write some text to the overlay
+		char buf[2][256];
+		sprintf(buf[0], "%9d", attemptLimit);
+		sprintf(buf[1], "%9d", currentLevel);
+
+		myInfoText->format(
+			"attempts remaining: %s\n"
+			"red balls remaining: %s\n",
+			buf[0],
+			buf[1]
+			);
+
+		// convert it to a mesh.
+		myInfoText->update();
+		// draw the text overlay
+		myText->render(vx, vy);
+	}
+
     /// this is called to draw the world
     void draw_world(int x, int y, int w, int h) {
       int vx = 0, vy = 0;
@@ -613,6 +641,7 @@ namespace octet {
 	  checkIfBallIsInPocket();
 
 	  handleInputs();
+	  updateText(vx, vy);
 
 	  //std::string whiteBallHeight = std::to_string(whiteBall->get_position().y()) + " \n";
 	  //printf(whiteBallHeight.c_str());
