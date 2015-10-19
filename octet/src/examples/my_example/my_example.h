@@ -57,7 +57,7 @@ namespace octet {
     /// this is called once OpenGL is initialized
     void app_init() {
 		enable_cursor();
-		currentLevel = 0;
+		currentLevel = 1;
 	  currentNode = 0;
 	  resetTime = 0;
       app_scene =  new visual_scene();
