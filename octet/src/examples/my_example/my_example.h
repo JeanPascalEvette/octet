@@ -29,6 +29,7 @@ namespace octet {
 	  std::vector<ref<scene_node>> redBalls;
 	  std::vector<ref<scene_node>> myHoles;
 	  float holesRadius;
+	  int currentLevel;
 
 	  int xMousePos, yMousePos;
 	  int currentNode, currentNodePostInit;
@@ -56,6 +57,7 @@ namespace octet {
     /// this is called once OpenGL is initialized
     void app_init() {
 		enable_cursor();
+		currentLevel = 1;
 	  currentNode = 0;
 	  resetTime = 0;
       app_scene =  new visual_scene();
@@ -123,21 +125,21 @@ namespace octet {
 	  // Generate field
 	  mat.loadIdentity();
 	  mat.translate(0, -1, 0);
-	  app_scene->add_shape(mat, new mesh_box(vec3(16.0f, 1.0f, 20.0f)), green, false);
+	  app_scene->add_shape(mat, new mesh_box(vec3(16.0f, 1.0f, 20.0f)), green, false, 999.0f);
 
 	  // Generate 4 Walls of pool table
 	  mat.loadIdentity();
 	  mat.translate(15, -1, 0);
-	  app_scene->add_shape(mat, new mesh_box(vec3(1.0f, 3.5f, 21.0f)), darkgreen, false);
+	  app_scene->add_shape(mat, new mesh_box(vec3(1.0f, 3.5f, 21.0f)), darkgreen, false, 999.0f);
 	  mat.loadIdentity();
 	  mat.translate(-15, -1, 0);
-	  app_scene->add_shape(mat, new mesh_box(vec3(1.0f, 3.5f, 21.0f)), darkgreen, false);
+	  app_scene->add_shape(mat, new mesh_box(vec3(1.0f, 3.5f, 21.0f)), darkgreen, false, 999.0f);
 	  mat.loadIdentity();
 	  mat.translate(0, -1, -20);
-	  app_scene->add_shape(mat, new mesh_box(vec3(16.0f, 3.5f, 1.0f)), darkgreen, false);
+	  app_scene->add_shape(mat, new mesh_box(vec3(16.0f, 3.5f, 1.0f)), darkgreen, false, 999.0f);
 	  mat.loadIdentity();
 	  mat.translate(0, -1, 20);
-	  app_scene->add_shape(mat, new mesh_box(vec3(16.0f, 3.5f, 1.0f)), darkgreen, false);
+	  app_scene->add_shape(mat, new mesh_box(vec3(16.0f, 3.5f, 1.0f)), darkgreen, false, 999.0f);
 
 
 	  // Create scene_nodes corresponding to the meshes created
@@ -188,10 +190,13 @@ namespace octet {
 		mat4t mat;
 		material *red = new material(vec4(1, 0, 0, 1));
 		material *white = new material(vec4(1, 1, 1, 1));
-
+		char levelName[30];
+		strcpy(levelName, "Level");
+		strcat(levelName, std::to_string(currentLevel).c_str());
+		strcat(levelName, ".xml");
 
 		tinyxml2::XMLDocument doc;	
-		doc.LoadFile("test.xml");
+		doc.LoadFile(levelName);
 		attemptLimit = atof(doc.FirstChildElement("Data")->FirstChildElement("AttemptLimit")->GetText());;
 		float whiteBallLocX = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("x")->GetText());
 		float whiteBallLocY = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("y")->GetText());
@@ -243,8 +248,12 @@ namespace octet {
 	void generateHole(vec3 position, float radius)
 	{
 		// use a shader that just outputs the color_ attribute.
-		param_shader *shader = new param_shader("shaders/default.vs", "shaders/custom.fs");
+		param_shader *shader = new param_shader("shaders/default.vs", "shaders/hole.fs");
+
 		material *black = new material(vec4(0, 0, 0, 1), shader);
+		float val = radius * 2;
+		black->add_uniform(&val, atom_height, GL_FLOAT, 1, param::stage_fragment);
+		black->add_uniform(&position, atom_pos, GL_FLOAT_VEC3, 1, param::stage_fragment);
 
 
 		mesh *hole = new mesh();
@@ -422,6 +431,12 @@ namespace octet {
 		float zMember = (position.z() - circlePos.z())*(position.z() - circlePos.z());
 
 		return (xMember + zMember <= (circleRadius*circleRadius));
+	}
+
+	void goToNextLevel()
+	{
+		currentLevel++;
+		resetBoard();
 	}
 
 	/// This function checks whether any ball is in a pocket and removes in from play if that is the case.
