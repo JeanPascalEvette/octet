@@ -57,7 +57,7 @@ namespace octet {
     /// this is called once OpenGL is initialized
     void app_init() {
 		enable_cursor();
-		currentLevel = 1;
+		currentLevel = 0;
 	  currentNode = 0;
 	  resetTime = 0;
       app_scene =  new visual_scene();
@@ -494,6 +494,9 @@ namespace octet {
 					++it2;
 			}
 		}
+
+		if (redBalls.size() == 0)
+			goToNextLevel();
 	}
 
 	void resetBoard()
