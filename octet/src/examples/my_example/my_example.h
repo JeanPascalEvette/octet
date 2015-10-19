@@ -334,7 +334,7 @@ namespace octet {
 
 
 
-	/// This function generates a black disc to be used as a hole. It is based on the helix object created on example_geometry
+	/// This function generates a white ray. It is based on the helix object created on example_geometry
 	void generateRay(vec3 position1, vec3 position2, float width)
 	{
 		// use a shader that just outputs the color_ attribute.

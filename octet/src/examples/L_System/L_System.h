@@ -9,6 +9,8 @@ namespace octet {
   class L_System : public app {
     // scene for drawing box
     ref<visual_scene> app_scene;
+	std::vector<material*> listOfMaterials;
+	int currentMaterial;
   public:
     /// this is called when we construct the class before everything is initialised.
     L_System(int argc, char **argv) : app(argc, argv) {
@@ -19,12 +21,50 @@ namespace octet {
       app_scene =  new visual_scene();
       app_scene->create_default_camera_and_lights();
 
-      material *red = new material(vec4(1, 0, 0, 1));
-      mesh_box *box = new mesh_box(vec3(4));
-      scene_node *node = new scene_node();
-      app_scene->add_child(node);
-      app_scene->add_mesh_instance(new mesh_instance(node, box, red));
+	  currentMaterial = 0;
+	  material *red = new material(vec4(1, 0, 0, 1));
+	  material *green = new material(vec4(0, 1, 0, 1));
+	  material *blue = new material(vec4(0, 0, 1, 1));
+	  material *white = new material(vec4(1, 1, 1, 1));
+	  material *black = new material(vec4(0, 0, 0, 1));
+
+
+
+
+
+	  listOfMaterials.push_back(red);
+	  listOfMaterials.push_back(green);
+	  listOfMaterials.push_back(blue);
+	  listOfMaterials.push_back(white);
+	  listOfMaterials.push_back(black);
+
+	  vec3 nextPoint = drawLine(vec3(0));
+	  nextPoint = drawLine(nextPoint);
+	  nextPoint = drawLine(nextPoint);
+	  nextPoint = drawLine(nextPoint);
+	  nextPoint = drawLine(nextPoint);
+	  nextPoint = drawLine(nextPoint);
     }
+
+	vec3 drawLine(vec3 startingPoint)
+	{
+		material * color = listOfMaterials[currentMaterial];
+		currentMaterial = (currentMaterial + 1) % listOfMaterials.size();
+		float halfSize = -1.0f;
+
+		vec3 midPoint = startingPoint;
+		midPoint.z() = midPoint.z() + halfSize;
+		vec3 endPoint = startingPoint;
+		endPoint.z() = endPoint.z() + 2.0f*halfSize;
+		mat4t mat = mat4t();
+		mat.loadIdentity();
+		mat.rotate(90.0f, 1, 0, 0);
+		mesh_cylinder *line = new mesh_cylinder(zcylinder(midPoint, 0.1f, halfSize), mat);
+		scene_node *node = new scene_node();
+		app_scene->add_child(node);
+		app_scene->add_mesh_instance(new mesh_instance(node, line, color));
+		return endPoint;
+	}
 
     /// this is called to draw the world
     void draw_world(int x, int y, int w, int h) {
@@ -38,10 +78,6 @@ namespace octet {
       // draw the scene
       app_scene->render((float)vx / vy);
 
-      // tumble the box  (there is only one mesh instance)
-      scene_node *node = app_scene->get_mesh_instance(0)->get_node();
-      node->rotate(1, vec3(1, 0, 0));
-      node->rotate(1, vec3(0, 1, 0));
     }
   };
 }
