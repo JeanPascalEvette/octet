@@ -76,7 +76,7 @@ namespace octet {
 	  the_camera->get_node()->translate(vec3(0, 0, -35)); // Have to move the camera for it to be centered
 	  mesh_instance *mi;
 
-	  aabb bb(vec3(64.5f, -200.0f, 0.0f), vec3(256, 64, 0));
+	  aabb bb(vec3(144.5f, 305.0f, 0.0f), vec3(256, 64, 0));
 	  myText = new text_overlay();
 	  myInfoText = new mesh_text(myText->get_default_font(), "", &bb);
 	  myText->add_mesh_text(myInfoText);
@@ -597,15 +597,18 @@ namespace octet {
 		myInfoText->clear();
 
 		// write some text to the overlay
-		char buf[2][256];
-		sprintf(buf[0], "%9d", attemptLimit);
-		sprintf(buf[1], "%9d", currentLevel);
+		char buf[3][256];
+		sprintf(buf[0], "%9d", currentLevel);
+		sprintf(buf[1], "%9d", redBalls.size());
+		sprintf(buf[2], "%9d", attemptLimit);
 
 		myInfoText->format(
-			"attempts remaining: %s\n"
-			"red balls remaining: %s\n",
+			"current level: %s\n"
+			"red balls remaining: %s\n"
+			"attempts remaining: %s\n",
 			buf[0],
-			buf[1]
+			buf[1],
+			buf[2]
 			);
 
 		// convert it to a mesh.
