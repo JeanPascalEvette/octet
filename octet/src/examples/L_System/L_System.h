@@ -38,15 +38,15 @@ namespace octet {
 	  listOfMaterials.push_back(white);
 	  listOfMaterials.push_back(black);
 
-	  vec3 nextPoint = drawLine(vec3(0));
-	  nextPoint = drawLine(nextPoint);
-	  nextPoint = drawLine(nextPoint);
-	  nextPoint = drawLine(nextPoint);
-	  nextPoint = drawLine(nextPoint);
-	  nextPoint = drawLine(nextPoint);
+	  vec3 nextPoint = drawLine(vec3(0),0.0f);
+	  nextPoint = drawLine(nextPoint, 0.0f);
+	  nextPoint = drawLine(nextPoint, 0.0f);
+	  nextPoint = drawLine(nextPoint, 0.0f);
+	  nextPoint = drawLine(nextPoint, 0.0f);
+	  nextPoint = drawLine(nextPoint, 45.0f);
     }
 
-	vec3 drawLine(vec3 startingPoint)
+	vec3 drawLine(vec3 startingPoint, float angle = 0.0f)
 	{
 		material * color = listOfMaterials[currentMaterial];
 		currentMaterial = (currentMaterial + 1) % listOfMaterials.size();
@@ -63,6 +63,9 @@ namespace octet {
 		scene_node *node = new scene_node();
 		app_scene->add_child(node);
 		app_scene->add_mesh_instance(new mesh_instance(node, line, color));
+		node->translate(-midPoint);
+		node->rotate(angle, vec3(0, 0, 1));
+		node->translate(midPoint);
 		return endPoint;
 	}
 
