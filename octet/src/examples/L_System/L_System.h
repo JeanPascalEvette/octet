@@ -97,15 +97,18 @@ namespace octet {
 		if (listOfLines.size() == 0) return;
 		vec3 linePos = listOfLines[listOfLines.size() - 1]->get_position();
 
-		float xScale = app_scene->get_camera_instance(0)->get_xscale();
-		float yScale = app_scene->get_camera_instance(0)->get_yscale();
+		vec2 fov = app_scene->get_camera_instance(0)->getFov();
+		vec3 cameraPos = app_scene->get_camera_instance(0)->get_node()->get_position();
+		vec3 cameraOnPlane = vec3(cameraPos.x(), cameraPos.y(), 0);
 
-		float actualX, actualY;
-		actualX = app_scene->get_camera_instance(0)->get_screen_to_world(vec3(0, 0, 0)).x();
-		actualY = app_scene->get_camera_instance(0)->get_screen_to_world(vec3(0, 0, 0)).y();
+		float lengthAdj = (cameraPos - cameraOnPlane).length();
+		float lengthOppY = tan(fov.y() / 2 * CL_M_PI / 180) * lengthAdj;
+		//tan(fov.y()) = Opp/Adj
+		//TOA
 
-		//if (linePos.x() < -actualX || linePos.x() > actualX || linePos.y() < -actualY || linePos.y() > actualY)
-		//	app_scene->get_camera_instance(0)->get_node()->translate(vec3(0,0,5.0f));
+
+		if (linePos.y() < -lengthOppY || linePos.y() > lengthOppY)
+			app_scene->get_camera_instance(0)->get_node()->translate(vec3(0,0,5.0f));
 	}
 
     /// this is called to draw the world
