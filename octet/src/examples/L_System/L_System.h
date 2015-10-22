@@ -38,6 +38,7 @@ namespace octet {
       app_scene =  new visual_scene();
       app_scene->create_default_camera_and_lights();
 	  app_scene->get_camera_instance(0)->set_far_plane(100000.0f);
+	  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 15, 0));
 
 	  currentMaterial = 0;
 	  material *red = new material(vec4(1, 0, 0, 1));
@@ -205,17 +206,18 @@ namespace octet {
 
 		vec2 fov = app_scene->get_camera_instance(0)->getFov();
 		vec3 cameraPos = app_scene->get_camera_instance(0)->get_node()->get_position();
-		vec3 cameraOnPlane = vec3(cameraPos.x(), cameraPos.y(), 0);
+		cameraPos.y() = 0;
+		vec3 cameraOnPlane = vec3(cameraPos.x(), 0, 0);
 
 		float lengthAdj = (cameraPos - cameraOnPlane).length();
-		float lengthOppY = tan(fov.y()/2 * CL_M_PI / 180) * lengthAdj;
+		float lengthOppY = 2*(tan(fov.y()/2 * CL_M_PI / 180) * lengthAdj);
 		//tan(fov.y()) = Opp/Adj
 		//TOA
 
 
 		if (highestY - margin   < -lengthOppY || highestY + margin   > lengthOppY)
 		{
-			app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 0, 5.0f));
+			app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 2, 5.0f));
 		}
 	}
 
