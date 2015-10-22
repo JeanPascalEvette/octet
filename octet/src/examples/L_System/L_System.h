@@ -27,6 +27,7 @@ namespace octet {
 
 	vec3 nextPoint;
 	int currentFile;
+	int currentIteration;
 
 	const float HALFSIZE = 1.0f;
   public:
@@ -40,7 +41,7 @@ namespace octet {
       app_scene->create_default_camera_and_lights();
 	  app_scene->get_camera_instance(0)->set_far_plane(100000.0f);
 	  currentFile = 0;
-
+	  currentIteration = 1;
 	  loadFile();
 
 
@@ -48,28 +49,8 @@ namespace octet {
 
 	void loadFile()
 	{
-		vec3 pos = app_scene->get_camera_instance(0)->get_node()->get_position();
-			app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 14, 0));
-
-		currentMaterial = 0;
-		material *red = new material(vec4(1, 0, 0, 1));
-		material *green = new material(vec4(0, 1, 0, 1));
-		material *blue = new material(vec4(0, 0, 1, 1));
-		material *white = new material(vec4(1, 1, 1, 1));
-		material *black = new material(vec4(0, 0, 0, 1));
-		savedPointStack = std::vector<vec3>();
-		savedAngleStack = std::vector<float>();
 
 
-
-
-		listOfMaterials.push_back(red);
-		listOfMaterials.push_back(green);
-		listOfMaterials.push_back(blue);
-		listOfMaterials.push_back(white);
-		listOfMaterials.push_back(black);
-
-		nextPoint = vec3(0, 0, 0);
 		rules = std::vector<std::string>();
 		decodedRules = std::map<char, std::string>();
 
@@ -97,12 +78,38 @@ namespace octet {
 		}
 		iterations = atoi(doc.FirstChildElement("Data")->FirstChildElement("Iterations")->GetText());
 
-		for (int i = 0; i < iterations; i++)
+		generateTree();
+	}
+
+	void generateTree()
+	{
+		app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 14, 0));
+		currentMaterial = 0;
+		material *red = new material(vec4(1, 0, 0, 1));
+		material *green = new material(vec4(0, 1, 0, 1));
+		material *blue = new material(vec4(0, 0, 1, 1));
+		material *white = new material(vec4(1, 1, 1, 1));
+		material *black = new material(vec4(0, 0, 0, 1));
+		savedPointStack = std::vector<vec3>();
+		savedAngleStack = std::vector<float>();
+
+
+
+		listOfMaterials = std::vector<material*>();
+
+		listOfMaterials.push_back(red);
+		listOfMaterials.push_back(green);
+		listOfMaterials.push_back(blue);
+		listOfMaterials.push_back(white);
+		listOfMaterials.push_back(black);
+		std::string startingAxiom = axiom;
+		nextPoint = vec3(0, 0, 0);
+		for (int i = 0; i < currentIteration; i++)
 		{
 			std::string newAxiom = "";
-			for (int u = 0; u < axiom.size(); u++)
+			for (int u = 0; u < startingAxiom.size(); u++)
 			{
-				char currentChar = axiom[u];
+				char currentChar = startingAxiom[u];
 				bool found = false;
 				std::map<char, std::string>::iterator it;
 				for (it = decodedRules.begin(); it != decodedRules.end();)
@@ -119,29 +126,29 @@ namespace octet {
 					newAxiom += currentChar;
 
 			}
-			axiom = newAxiom;
+			startingAxiom = newAxiom;
 		}
 
 		float angle = 0.0f;
-		for (int i = 0; i < axiom.size(); i++)
+		for (int i = 0; i < startingAxiom.size(); i++)
 		{
-			if (axiom[i] == 'F')
+			if (startingAxiom[i] == 'F')
 			{
 				nextPoint = drawLine(nextPoint, angle);
 			}
-			else if (axiom[i] == '+')
+			else if (startingAxiom[i] == '+')
 			{
 				angle += setupAngle;
 			}
-			else if (axiom[i] == '-')
+			else if (startingAxiom[i] == '-')
 			{
 				angle -= setupAngle;
 			}
-			else if (axiom[i] == '[')
+			else if (startingAxiom[i] == '[')
 			{
 				rememberPoint(nextPoint, angle);
 			}
-			else if (axiom[i] == ']')
+			else if (startingAxiom[i] == ']')
 			{
 				std::pair<vec3, float> newVal = retrievePoint();
 				nextPoint = newVal.first;
@@ -242,24 +249,38 @@ namespace octet {
 
 	void reset()
 	{
+		app_scene->reset();
 		std::vector<ref<scene_node>>::iterator it;
 		for (it = listOfLines.begin(); it != listOfLines.end();)
 		{
-			(*it)->translate(vec3(0, 0, 500));
 			it = listOfLines.erase(it);
 		}
 		listOfLines.shrink_to_fit();
-		app_scene->get_camera_instance(0)->get_node()->translate(-app_scene->get_camera_instance(0)->get_node()->get_position());
-		app_scene->get_camera_instance(0)->get_node()->translate(vec3(0,0, 34.6410179f));
+		app_scene = new visual_scene();
+		app_scene->create_default_camera_and_lights();
+		app_scene->get_camera_instance(0)->set_far_plane(100000.0f);
 	}
 
 	void handleInputs()
 	{
-		if (is_key_down(key_up))
+		if (is_key_going_down(key_up))
 		{
 			currentFile = (currentFile + 1) % 6;
 			reset();
 			loadFile();
+		}
+		else if (is_key_going_down(key_down))
+		{
+			currentFile = (currentFile - 1);
+			if (currentFile < 0) currentFile = 5;
+			reset();
+			loadFile();
+		}
+		else if (is_key_going_down(key_right))
+		{
+			currentIteration = (currentIteration + 1) % iterations;
+			reset();
+			generateTree();
 		}
 	}
 
