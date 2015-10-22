@@ -24,6 +24,9 @@ namespace octet {
 	float setupAngle;
 	int iterations;
 
+
+	vec3 nextPoint;
+
 	const float HALFSIZE = 1.0f;
   public:
     /// this is called when we construct the class before everything is initialised.
@@ -34,7 +37,7 @@ namespace octet {
     void app_init() {
       app_scene =  new visual_scene();
       app_scene->create_default_camera_and_lights();
-	  app_scene->get_camera_instance(0)->set_far_plane(1000.0f);
+	  app_scene->get_camera_instance(0)->set_far_plane(100000.0f);
 
 	  currentMaterial = 0;
 	  material *red = new material(vec4(1, 0, 0, 1));
@@ -54,12 +57,12 @@ namespace octet {
 	  listOfMaterials.push_back(white);
 	  listOfMaterials.push_back(black);
 
-	  vec3 nextPoint = vec3(0);
+	  nextPoint = vec3(0,0,0);
 	  rules = std::vector<std::string>();
 	  decodedRules = std::map<char, std::string>();
 
 	  tinyxml2::XMLDocument doc;
-	  doc.LoadFile("dataC.xml");
+	  doc.LoadFile("dataE.xml");
 	  axiom = doc.FirstChildElement("Data")->FirstChildElement("Axiom")->GetText();
 	  setupAngle = atof(doc.FirstChildElement("Data")->FirstChildElement("Angle")->GetText());
 	  tinyxml2::XMLNode * el = doc.FirstChildElement("Data")->FirstChildElement("Rules")->FirstChildElement();
@@ -205,7 +208,7 @@ namespace octet {
 		vec3 cameraOnPlane = vec3(cameraPos.x(), cameraPos.y(), 0);
 
 		float lengthAdj = (cameraPos - cameraOnPlane).length();
-		float lengthOppY = tan(fov.y() / 2 * CL_M_PI / 180) * lengthAdj;
+		float lengthOppY = tan(fov.y()/2 * CL_M_PI / 180) * lengthAdj;
 		//tan(fov.y()) = Opp/Adj
 		//TOA
 
@@ -213,9 +216,6 @@ namespace octet {
 		if (highestY - margin   < -lengthOppY || highestY + margin   > lengthOppY)
 		{
 			app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 0, 5.0f));
-
-			//for (int i = 0; i < listOfLines.size();i++)
-			//	listOfLines[i]->scale(vec3(1.1f, 1, 1.1f));
 		}
 	}
 
