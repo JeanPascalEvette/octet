@@ -14,7 +14,7 @@ namespace octet {
 	std::vector<material*> listOfMaterials;
 	int currentMaterial;
 
-	std::vector<scene_node*> listOfLines;
+	std::vector<ref<scene_node>> listOfLines;
 	std::vector<vec3> savedPointStack;
 	std::vector<float> savedAngleStack;
 
@@ -26,6 +26,7 @@ namespace octet {
 
 
 	vec3 nextPoint;
+	int currentFile;
 
 	const float HALFSIZE = 1.0f;
   public:
@@ -38,104 +39,116 @@ namespace octet {
       app_scene =  new visual_scene();
       app_scene->create_default_camera_and_lights();
 	  app_scene->get_camera_instance(0)->set_far_plane(100000.0f);
-	  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 14, 0));
+	  currentFile = 0;
 
-	  currentMaterial = 0;
-	  material *red = new material(vec4(1, 0, 0, 1));
-	  material *green = new material(vec4(0, 1, 0, 1));
-	  material *blue = new material(vec4(0, 0, 1, 1));
-	  material *white = new material(vec4(1, 1, 1, 1));
-	  material *black = new material(vec4(0, 0, 0, 1));
-	  savedPointStack = std::vector<vec3>();
-	  savedAngleStack = std::vector<float>();
-
-
-
-
-	  listOfMaterials.push_back(red);
-	  listOfMaterials.push_back(green);
-	  listOfMaterials.push_back(blue);
-	  listOfMaterials.push_back(white);
-	  listOfMaterials.push_back(black);
-
-	  nextPoint = vec3(0,0,0);
-	  rules = std::vector<std::string>();
-	  decodedRules = std::map<char, std::string>();
-
-	  tinyxml2::XMLDocument doc;
-	  doc.LoadFile("dataE.xml");
-	  axiom = doc.FirstChildElement("Data")->FirstChildElement("Axiom")->GetText();
-	  setupAngle = atof(doc.FirstChildElement("Data")->FirstChildElement("Angle")->GetText());
-	  tinyxml2::XMLNode * el = doc.FirstChildElement("Data")->FirstChildElement("Rules")->FirstChildElement();
-	  while (el != nullptr)
-	  {
-		  rules.push_back(el->ToElement()->GetText());
-		  el = el->NextSibling();
-	  }
-
-	  for (int i = 0;i < rules.size(); i++)
-	  {
-			  char pre = (rules[i].substr(0, rules[i].find_first_of("->"))[0]);
-			  std::string post = rules[i].substr(rules[i].find_first_of("->")+2, rules[i].size());
-			  decodedRules[pre] = post;
-		  
-	  }
-	  iterations = atoi(doc.FirstChildElement("Data")->FirstChildElement("Iterations")->GetText());
-
-	  for (int i = 0; i < iterations; i++)
-	  {
-		  std::string newAxiom = "";
-		  for (int u = 0; u < axiom.size(); u++)
-		  {
-			  char currentChar = axiom[u];
-			  bool found = false;
-			  std::map<char, std::string>::iterator it;
-			  for (it = decodedRules.begin(); it != decodedRules.end();)
-			  {
-				  if (it->first == currentChar)
-				  {
-					  newAxiom += it->second;
-					  found = true;
-					  break;
-				  }
-				  it++;
-			  }
-			  if(!found)
-			  newAxiom += currentChar;
-
-		  }
-		  axiom = newAxiom;
-	  }
-
-	  float angle = 0.0f;
-	  for (int i = 0; i < axiom.size(); i++)
-	  {
-		  if (axiom[i] == 'F')
-		  {
-			  nextPoint = drawLine(nextPoint, angle);
-		  }
-		  else if (axiom[i] == '+')
-		  {
-			  angle += setupAngle;
-		  }
-		  else if (axiom[i] == '-')
-		  {
-			  angle -= setupAngle;
-		  }
-		  else if (axiom[i] == '[')
-		  {
-			  rememberPoint(nextPoint, angle);
-		  }
-		  else if (axiom[i] == ']')
-		  {
-			  std::pair<vec3, float> newVal = retrievePoint();
-			  nextPoint = newVal.first;
-			  angle = newVal.second;
-		  }
-	  }
+	  loadFile();
 
 
     }
+
+	void loadFile()
+	{
+		vec3 pos = app_scene->get_camera_instance(0)->get_node()->get_position();
+			app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 14, 0));
+
+		currentMaterial = 0;
+		material *red = new material(vec4(1, 0, 0, 1));
+		material *green = new material(vec4(0, 1, 0, 1));
+		material *blue = new material(vec4(0, 0, 1, 1));
+		material *white = new material(vec4(1, 1, 1, 1));
+		material *black = new material(vec4(0, 0, 0, 1));
+		savedPointStack = std::vector<vec3>();
+		savedAngleStack = std::vector<float>();
+
+
+
+
+		listOfMaterials.push_back(red);
+		listOfMaterials.push_back(green);
+		listOfMaterials.push_back(blue);
+		listOfMaterials.push_back(white);
+		listOfMaterials.push_back(black);
+
+		nextPoint = vec3(0, 0, 0);
+		rules = std::vector<std::string>();
+		decodedRules = std::map<char, std::string>();
+
+		tinyxml2::XMLDocument doc;
+		char aChar =  65 + currentFile;
+		std::string fileName = "data";
+		fileName += aChar;
+		fileName += ".xml";
+		doc.LoadFile(fileName.c_str());
+		axiom = doc.FirstChildElement("Data")->FirstChildElement("Axiom")->GetText();
+		setupAngle = atof(doc.FirstChildElement("Data")->FirstChildElement("Angle")->GetText());
+		tinyxml2::XMLNode * el = doc.FirstChildElement("Data")->FirstChildElement("Rules")->FirstChildElement();
+		while (el != nullptr)
+		{
+			rules.push_back(el->ToElement()->GetText());
+			el = el->NextSibling();
+		}
+
+		for (int i = 0;i < rules.size(); i++)
+		{
+			char pre = (rules[i].substr(0, rules[i].find_first_of("->"))[0]);
+			std::string post = rules[i].substr(rules[i].find_first_of("->") + 2, rules[i].size());
+			decodedRules[pre] = post;
+
+		}
+		iterations = atoi(doc.FirstChildElement("Data")->FirstChildElement("Iterations")->GetText());
+
+		for (int i = 0; i < iterations; i++)
+		{
+			std::string newAxiom = "";
+			for (int u = 0; u < axiom.size(); u++)
+			{
+				char currentChar = axiom[u];
+				bool found = false;
+				std::map<char, std::string>::iterator it;
+				for (it = decodedRules.begin(); it != decodedRules.end();)
+				{
+					if (it->first == currentChar)
+					{
+						newAxiom += it->second;
+						found = true;
+						break;
+					}
+					it++;
+				}
+				if (!found)
+					newAxiom += currentChar;
+
+			}
+			axiom = newAxiom;
+		}
+
+		float angle = 0.0f;
+		for (int i = 0; i < axiom.size(); i++)
+		{
+			if (axiom[i] == 'F')
+			{
+				nextPoint = drawLine(nextPoint, angle);
+			}
+			else if (axiom[i] == '+')
+			{
+				angle += setupAngle;
+			}
+			else if (axiom[i] == '-')
+			{
+				angle -= setupAngle;
+			}
+			else if (axiom[i] == '[')
+			{
+				rememberPoint(nextPoint, angle);
+			}
+			else if (axiom[i] == ']')
+			{
+				std::pair<vec3, float> newVal = retrievePoint();
+				nextPoint = newVal.first;
+				angle = newVal.second;
+			}
+		}
+	}
 
 	std::pair<vec3, float> retrievePoint()
 	{
@@ -227,6 +240,29 @@ namespace octet {
 		}
 	}
 
+	void reset()
+	{
+		std::vector<ref<scene_node>>::iterator it;
+		for (it = listOfLines.begin(); it != listOfLines.end();)
+		{
+			(*it)->translate(vec3(0, 0, 500));
+			it = listOfLines.erase(it);
+		}
+		listOfLines.shrink_to_fit();
+		app_scene->get_camera_instance(0)->get_node()->translate(-app_scene->get_camera_instance(0)->get_node()->get_position());
+		app_scene->get_camera_instance(0)->get_node()->translate(vec3(0,0, 34.6410179f));
+	}
+
+	void handleInputs()
+	{
+		if (is_key_down(key_up))
+		{
+			currentFile = (currentFile + 1) % 6;
+			reset();
+			loadFile();
+		}
+	}
+
     /// this is called to draw the world
     void draw_world(int x, int y, int w, int h) {
       int vx = 0, vy = 0;
@@ -240,6 +276,8 @@ namespace octet {
       app_scene->render((float)vx / vy);
 
 	  checkCamera(vx, vy);
+
+	  handleInputs();
 
     }
   };
