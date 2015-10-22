@@ -1,9 +1,8 @@
 <?xml version="1.0"?>
 <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-<Axiom>A</Axiom>
+<Axiom>F</Axiom>
 <Rules>
-	<Rule>A->A[B]A</Rule>
-	<Rule>B->AA</Rule>
+	<Rule>F->F[+F]F[-F]F</Rule>
 </Rules>
 <Iterations>5</Iterations>
 </Data>

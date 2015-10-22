@@ -16,6 +16,7 @@ namespace octet {
 
 	std::vector<scene_node*> listOfLines;
 	std::vector<vec3> savedPointStack;
+	std::vector<float> savedAngleStack;
 
 	std::vector<std::string> rules;
 	std::map<char, std::string> decodedRules;
@@ -41,7 +42,7 @@ namespace octet {
 	  material *white = new material(vec4(1, 1, 1, 1));
 	  material *black = new material(vec4(0, 0, 0, 1));
 	  savedPointStack = std::vector<vec3>();
-
+	  savedAngleStack = std::vector<float>();
 
 
 
@@ -82,61 +83,68 @@ namespace octet {
 		  for (int u = 0; u < axiom.size(); u++)
 		  {
 			  char currentChar = axiom[u];
+			  bool found = false;
 			  std::map<char, std::string>::iterator it;
 			  for (it = decodedRules.begin(); it != decodedRules.end();)
 			  {
 				  if (it->first == currentChar)
 				  {
 					  newAxiom += it->second;
+					  found = true;
 					  break;
 				  }
 				  it++;
 			  }
+			  if(!found)
+			  newAxiom += currentChar;
 
 		  }
 		  axiom = newAxiom;
 	  }
 
-
-	  return;
-	  for (int i = 0; i < 3; i ++){
-	  nextPoint = drawLine(nextPoint, 0.0f);
-	  nextPoint = drawLine(nextPoint, 0.0f);
-	  nextPoint = drawLine(nextPoint, 0.0f);
-	  rememberPoint(nextPoint);
-	  nextPoint = drawLine(nextPoint, -15.0f);
-	  nextPoint = retrievePoint();
-	  nextPoint = drawLine(nextPoint, 15.0f);
-	  rememberPoint(nextPoint);
-	  nextPoint = drawLine(nextPoint, 0.0f);
-	  nextPoint = drawLine(nextPoint, 45.0f);
-	  nextPoint = drawLine(nextPoint, 22.0f);
-	  nextPoint = drawLine(nextPoint, -15.0f);
-	  rememberPoint(nextPoint);
-	  nextPoint = drawLine(nextPoint, 25.0f);
-	  nextPoint = drawLine(nextPoint, -315.0f);
-	  nextPoint = drawLine(nextPoint, 45.0f);
-	  nextPoint = drawLine(nextPoint, -435.0f);
-	  nextPoint = retrievePoint();
-	  nextPoint = drawLine(nextPoint, 4445.0f);
-	  nextPoint = drawLine(nextPoint, -451.0f);
-	  nextPoint = retrievePoint();
-	  nextPoint = drawLine(nextPoint, 4445.0f);
-	  nextPoint = drawLine(nextPoint, -451.0f);
+	  float angle = 0.0f;
+	  for (int i = 0; i < axiom.size(); i++)
+	  {
+		  if (axiom[i] == 'F')
+		  {
+			  nextPoint = drawLine(nextPoint, angle);
+		  }
+		  else if (axiom[i] == '+')
+		  {
+			  angle -= 25.0f;
+		  }
+		  else if (axiom[i] == '-')
+		  {
+			  angle += 25.0f;
+		  }
+		  else if (axiom[i] == '[')
+		  {
+			  rememberPoint(nextPoint, angle);
+		  }
+		  else if (axiom[i] == ']')
+		  {
+			  nextPoint = retrievePoint(&angle);
+		  }
 	  }
+
+
     }
 
-	vec3 retrievePoint()
+	vec3 retrievePoint(float *angle)
 	{
 		vec3 point = savedPointStack[savedPointStack.size() - 1];
 		savedPointStack.pop_back();
 		savedPointStack.shrink_to_fit();
+		angle = &savedAngleStack[savedAngleStack.size() - 1];
+		savedAngleStack.pop_back();
+		savedAngleStack.shrink_to_fit();
 		return point;
 	}
 
-	void rememberPoint(vec3 point)
+	void rememberPoint(vec3 point, float angle)
 	{
 		savedPointStack.push_back(point);
+		savedAngleStack.push_back(angle);
 	}
 
 	vec3 drawLine(vec3 startingPoint, float angle = 0.0f)
@@ -202,8 +210,8 @@ namespace octet {
 		{
 			app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 0, 5.0f));
 
-			for (int i = 0; i < listOfLines.size();i++)
-				listOfLines[i]->scale(vec3(1.1f, 1, 1.1f));
+			//for (int i = 0; i < listOfLines.size();i++)
+			//	listOfLines[i]->scale(vec3(1.1f, 1, 1.1f));
 		}
 	}
 
