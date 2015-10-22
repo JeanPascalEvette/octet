@@ -4,6 +4,8 @@
 //
 // Modular Framework for OpenGLES2 rendering on multiple platforms.
 //
+#include <sstream>
+#include "tinyxml2.h"
 namespace octet {
   /// Scene containing a box with octet.
   class L_System : public app {
@@ -14,6 +16,11 @@ namespace octet {
 
 	std::vector<scene_node*> listOfLines;
 	std::vector<vec3> savedPointStack;
+
+	std::vector<std::string> rules;
+	std::map<char, std::string> decodedRules;
+	std::string axiom;
+	int iterations;
 
 	const float HALFSIZE = 1.0f;
   public:
@@ -45,8 +52,53 @@ namespace octet {
 	  listOfMaterials.push_back(white);
 	  listOfMaterials.push_back(black);
 
-	  vec3 nextPoint = drawLine(vec3(0),0.0f);
+	  vec3 nextPoint = vec3(0);
+	  rules = std::vector<std::string>();
+	  decodedRules = std::map<char, std::string>();
 
+	  tinyxml2::XMLDocument doc;
+	  doc.LoadFile("data.xml");
+	  axiom = doc.FirstChildElement("Data")->FirstChildElement("Axiom")->GetText();
+
+	  tinyxml2::XMLNode * el = doc.FirstChildElement("Data")->FirstChildElement("Rules")->FirstChildElement();
+	  while (el != nullptr)
+	  {
+		  rules.push_back(el->ToElement()->GetText());
+		  el = el->NextSibling();
+	  }
+
+	  for (int i = 0;i < rules.size(); i++)
+	  {
+			  char pre = (rules[i].substr(0, rules[i].find_first_of("->"))[0]);
+			  std::string post = rules[i].substr(rules[i].find_first_of("->")+2, rules[i].size());
+			  decodedRules[pre] = post;
+		  
+	  }
+	  iterations = atoi(doc.FirstChildElement("Data")->FirstChildElement("Iterations")->GetText());
+
+	  for (int i = 0; i < iterations; i++)
+	  {
+		  std::string newAxiom = "";
+		  for (int u = 0; u < axiom.size(); u++)
+		  {
+			  char currentChar = axiom[u];
+			  std::map<char, std::string>::iterator it;
+			  for (it = decodedRules.begin(); it != decodedRules.end();)
+			  {
+				  if (it->first == currentChar)
+				  {
+					  newAxiom += it->second;
+					  break;
+				  }
+				  it++;
+			  }
+
+		  }
+		  axiom = newAxiom;
+	  }
+
+
+	  return;
 	  for (int i = 0; i < 3; i ++){
 	  nextPoint = drawLine(nextPoint, 0.0f);
 	  nextPoint = drawLine(nextPoint, 0.0f);
@@ -123,6 +175,8 @@ namespace octet {
 
 		return endPoint;
 	}
+
+
 
 	void checkCamera(int vx, int vy)
 	{
