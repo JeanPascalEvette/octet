@@ -38,7 +38,7 @@ namespace octet {
       app_scene =  new visual_scene();
       app_scene->create_default_camera_and_lights();
 	  app_scene->get_camera_instance(0)->set_far_plane(100000.0f);
-	  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 15, 0));
+	  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 14, 0));
 
 	  currentMaterial = 0;
 	  material *red = new material(vec4(1, 0, 0, 1));
@@ -179,7 +179,13 @@ namespace octet {
 		mat4t mat = mat4t();
 		mat.loadIdentity();
 		mat.rotate(90.0f, 1, 0, 0);
-		mesh_cylinder *line = new mesh_cylinder(zcylinder(vec3(0), 0.1f, HALFSIZE), mat);
+		mesh_cylinder *line;
+		if (iterations == 7)
+			line = new mesh_cylinder(zcylinder(vec3(0), 0.5f, HALFSIZE), mat);
+		else if (iterations == 6)
+			line = new mesh_cylinder(zcylinder(vec3(0), 0.3f, HALFSIZE), mat);
+		else
+			line = new mesh_cylinder(zcylinder(vec3(0), 0.2f, HALFSIZE), mat);
 		scene_node *node = new scene_node();
 		app_scene->add_child(node);
 		app_scene->add_mesh_instance(new mesh_instance(node, line, color));

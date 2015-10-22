@@ -5,5 +5,5 @@
 <Rules>
 	<Rule>F->FF-[-F+F+F]+[+F-F-F]</Rule>
 </Rules>
-<Iterations>3</Iterations>
+<Iterations>4</Iterations>
 </Data>

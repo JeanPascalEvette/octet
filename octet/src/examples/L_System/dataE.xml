@@ -6,5 +6,5 @@
 	<Rule>F->FF</Rule>
 	<Rule>X->F[+X][-X]FX</Rule>
 </Rules>
-<Iterations>5</Iterations>
+<Iterations>7</Iterations>
 </Data>
