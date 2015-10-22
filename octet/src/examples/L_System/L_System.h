@@ -21,6 +21,7 @@ namespace octet {
 	std::vector<std::string> rules;
 	std::map<char, std::string> decodedRules;
 	std::string axiom;
+	float setupAngle;
 	int iterations;
 
 	const float HALFSIZE = 1.0f;
@@ -58,9 +59,9 @@ namespace octet {
 	  decodedRules = std::map<char, std::string>();
 
 	  tinyxml2::XMLDocument doc;
-	  doc.LoadFile("data.xml");
+	  doc.LoadFile("dataC.xml");
 	  axiom = doc.FirstChildElement("Data")->FirstChildElement("Axiom")->GetText();
-
+	  setupAngle = atof(doc.FirstChildElement("Data")->FirstChildElement("Angle")->GetText());
 	  tinyxml2::XMLNode * el = doc.FirstChildElement("Data")->FirstChildElement("Rules")->FirstChildElement();
 	  while (el != nullptr)
 	  {
@@ -111,11 +112,11 @@ namespace octet {
 		  }
 		  else if (axiom[i] == '+')
 		  {
-			  angle -= 25.0f;
+			  angle += setupAngle;
 		  }
 		  else if (axiom[i] == '-')
 		  {
-			  angle += 25.0f;
+			  angle -= setupAngle;
 		  }
 		  else if (axiom[i] == '[')
 		  {
@@ -123,22 +124,25 @@ namespace octet {
 		  }
 		  else if (axiom[i] == ']')
 		  {
-			  nextPoint = retrievePoint(&angle);
+			  std::pair<vec3, float> newVal = retrievePoint();
+			  nextPoint = newVal.first;
+			  angle = newVal.second;
 		  }
 	  }
 
 
     }
 
-	vec3 retrievePoint(float *angle)
+	std::pair<vec3, float> retrievePoint()
 	{
 		vec3 point = savedPointStack[savedPointStack.size() - 1];
 		savedPointStack.pop_back();
 		savedPointStack.shrink_to_fit();
-		angle = &savedAngleStack[savedAngleStack.size() - 1];
+		float angle = savedAngleStack[savedAngleStack.size() - 1];
 		savedAngleStack.pop_back();
 		savedAngleStack.shrink_to_fit();
-		return point;
+		std::pair<vec3, float> retVal = std::pair<vec3, float>(point, angle);
+		return retVal;
 	}
 
 	void rememberPoint(vec3 point, float angle)
