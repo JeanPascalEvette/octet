@@ -241,9 +241,15 @@ namespace octet {
 		//TOA
 
 
-		if (highestY - margin   < -lengthOppY || highestY + margin   > lengthOppY)
+		while (highestY - margin   < -lengthOppY || highestY + margin   > lengthOppY)
 		{
 			app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 2, 5.0f));
+			cameraPos = app_scene->get_camera_instance(0)->get_node()->get_position();
+			cameraPos.y() = 0;
+			cameraOnPlane = vec3(cameraPos.x(), 0, 0);
+
+			lengthAdj = (cameraPos - cameraOnPlane).length();
+			lengthOppY = 2 * (tan(fov.y() / 2 * CL_M_PI / 180) * lengthAdj);
 		}
 	}
 
@@ -266,19 +272,29 @@ namespace octet {
 		if (is_key_going_down(key_up))
 		{
 			currentFile = (currentFile + 1) % 6;
+			currentIteration = 1;
 			reset();
 			loadFile();
 		}
 		else if (is_key_going_down(key_down))
 		{
 			currentFile = (currentFile - 1);
+			currentIteration = 1;
 			if (currentFile < 0) currentFile = 5;
 			reset();
 			loadFile();
 		}
 		else if (is_key_going_down(key_right))
 		{
-			currentIteration = (currentIteration + 1) % iterations;
+			if (currentIteration == iterations) return;
+			currentIteration++;
+			reset();
+			generateTree();
+		}
+		else if (is_key_going_down(key_left))
+		{
+			if (currentIteration == 0) return;
+			currentIteration--;
 			reset();
 			generateTree();
 		}
