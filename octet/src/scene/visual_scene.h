@@ -298,11 +298,14 @@ namespace octet { namespace scene {
       #endif
     }
 
+#ifdef OCTET_BULLET
 	btDiscreteDynamicsWorld* get_world()
 	{
 		return world;
 	}
+#endif
 	
+	#ifdef OCTET_BULLET
 	scene_node* createNewObjectWithRigidBody(mat4t_in mat, material *myMaterial, mesh* msh, float mass, bool is_dynamic, btRigidBody** rigidBody)
 	{
 		btCollisionShape* shape = NULL;
@@ -315,7 +318,6 @@ namespace octet { namespace scene {
 			add_mesh_instance(result);
 		}
 
-	#ifdef OCTET_BULLET
 		btMatrix3x3 matrix(get_btMatrix3x3(mat));
 		btVector3 pos(get_btVector3(mat[3].xyz()));
 
@@ -339,9 +341,9 @@ namespace octet { namespace scene {
 			node->set_rigid_body((*rigidBody));
 			node->setIgnoreCol(!is_dynamic);
 		}
-	#endif
 		return node;
 	}
+	#endif
 
 
     /// helper to add a mesh to a scene and also to create the corresponding physics object

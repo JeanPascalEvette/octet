@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<Axiom>X</Axiom>
+<Angle>20</Angle>
+<Rules>
+	<Rule>F->FF</Rule>
+	<Rule>X->F[+X]F[-X]+X</Rule>
+</Rules>
+<Iterations>7</Iterations>
+</Data>

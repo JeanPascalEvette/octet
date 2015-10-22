@@ -3,7 +3,7 @@
 <AttemptLimit>2</AttemptLimit>
 <WhiteBall>
 	<Location>
-		<x>0</x>
+		<x>-10</x>
 		<y>1</y>
 		<z>0</z>
 	</Location>
@@ -16,9 +16,9 @@
 <ListOfRedBall>
 	<RedBall>
 		<Location>
-			<x>12</x>
+			<x>-11</x>
 			<y>1</y>
-			<z>0</z>
+			<z>-17</z>
 		</Location>
 		<Velocity>
 			<x>0</x>
@@ -30,7 +30,19 @@
 		<Location>
 			<x>-12</x>
 			<y>1</y>
-			<z>-13</z>
+			<z>15</z>
+		</Location>
+		<Velocity>
+			<x>0</x>
+			<y>0</y>
+			<z>0</z>
+		</Velocity>	
+	</RedBall>
+	<RedBall>
+		<Location>
+			<x>-10</x>
+			<y>1</y>
+			<z>3</z>
 		</Location>
 		<Velocity>
 			<x>0</x>

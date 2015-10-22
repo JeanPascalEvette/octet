@@ -128,6 +128,11 @@ namespace octet { namespace scene {
       }
     }
 
+	vec2 getFov()
+	{
+		return vec2(xfov, yfov);
+	}
+
     /// call this many times to build matrices for uniforms.
     void get_matrices(mat4t &modelToProjection, mat4t &modelToCamera, const mat4t &modelToWorld) const
     {
