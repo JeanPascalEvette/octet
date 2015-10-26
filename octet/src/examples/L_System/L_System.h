@@ -10,7 +10,12 @@ namespace octet {
   /// Scene containing a box with octet.
   class L_System : public app {
     // scene for drawing box
+	  ref<text_overlay> myText;
+	  ref<mesh_text> myInfoText;
     ref<visual_scene> app_scene;
+	material* darkGreen;
+	material* brown;
+	material* currentTreeMaterial;
 	std::vector<material*> listOfMaterials;
 	int currentMaterial;
 
@@ -29,6 +34,13 @@ namespace octet {
 	int currentFile;
 	int currentIteration;
 
+	enum ColorScheme {
+		ALTERNATING,
+		TREELIKE,
+		RANDOM
+	};
+	ColorScheme colorSchemeType;
+
 	const float HALFSIZE = 1.0f;
   public:
     /// this is called when we construct the class before everything is initialised.
@@ -42,6 +54,17 @@ namespace octet {
 	  app_scene->get_camera_instance(0)->set_far_plane(100000.0f);
 	  currentFile = 0;
 	  currentIteration = 1;
+	  colorSchemeType = ALTERNATING;
+
+
+
+	  aabb bb(vec3(144.5f, 305.0f, 0.0f), vec3(256, 64, 0));
+	  myText = new text_overlay();
+	  myInfoText = new mesh_text(myText->get_default_font(), "", &bb);
+	  myText->add_mesh_text(myInfoText);
+
+
+
 	  loadFile();
 
 
@@ -90,9 +113,11 @@ namespace octet {
 		material *blue = new material(vec4(0, 0, 1, 1));
 		material *white = new material(vec4(1, 1, 1, 1));
 		material *black = new material(vec4(0, 0, 0, 1));
+		darkGreen = new material(vec4(0, 0.5f, 0, 1));
+		brown = new material(vec4(0.2f, 0.2f, 0.2f,1));
 		savedPointStack = std::vector<vec3>();
 		savedAngleStack = std::vector<float>();
-
+		currentTreeMaterial = brown;
 
 
 		listOfMaterials = std::vector<material*>();
@@ -130,10 +155,28 @@ namespace octet {
 		}
 
 		float angle = 0.0f;
+		std::vector<int> listBranches = std::vector<int>();
+		for (int i = 0; i < startingAxiom.size(); i++)
+		{
+			if (startingAxiom[i] == ']')
+			{
+				for (int u = i; u >= 0; u--)
+				{
+					if(startingAxiom[u] == 'F')
+					{
+						listBranches.push_back(u);
+						break;
+					}
+				}
+			}
+		}
 		for (int i = 0; i < startingAxiom.size(); i++)
 		{
 			if (startingAxiom[i] == 'F')
 			{
+				for (int u = 0; u < listBranches.size(); u++)
+					if (listBranches[u] == i)
+						currentTreeMaterial = darkGreen;
 				nextPoint = drawLine(nextPoint, angle);
 			}
 			else if (startingAxiom[i] == '+')
@@ -146,10 +189,12 @@ namespace octet {
 			}
 			else if (startingAxiom[i] == '[')
 			{
+				//currentTreeMaterial = darkGreen;
 				rememberPoint(nextPoint, angle);
 			}
 			else if (startingAxiom[i] == ']')
 			{
+				currentTreeMaterial = brown;
 				std::pair<vec3, float> newVal = retrievePoint();
 				nextPoint = newVal.first;
 				angle = newVal.second;
@@ -178,7 +223,12 @@ namespace octet {
 	vec3 drawLine(vec3 startingPoint, float angle = 0.0f)
 	{
 		material * color = listOfMaterials[currentMaterial];
-		currentMaterial = (currentMaterial + 1) % listOfMaterials.size();
+		if (colorSchemeType == TREELIKE)
+			color = currentTreeMaterial;
+		else if(colorSchemeType == ALTERNATING)
+			currentMaterial = (currentMaterial + 1) % listOfMaterials.size();
+		else if(colorSchemeType == RANDOM)
+			currentMaterial = rand() % listOfMaterials.size();
 		vec3 midPoint, endPoint;
 		if (angle == 0.0f)
 		{
@@ -298,6 +348,40 @@ namespace octet {
 			reset();
 			generateTree();
 		}
+		else if (is_key_going_down(key_space))
+		{
+			if (colorSchemeType == ALTERNATING) colorSchemeType = TREELIKE;
+			else if (colorSchemeType == TREELIKE) colorSchemeType = RANDOM;
+			else if (colorSchemeType == RANDOM) colorSchemeType = ALTERNATING;
+			reset();
+			generateTree();
+		}
+	}
+
+
+
+	void updateText(int vx, int vy)
+	{
+		myInfoText->clear();
+		// write some text to the overlay
+		char buf[3][256];
+		sprintf(buf[0], "%9d", currentFile+1);
+		sprintf(buf[1], "%9d", currentIteration);
+		sprintf(buf[2], "%9d", colorSchemeType + 1);
+
+		myInfoText->format(
+			"Current Tree: %s\n"
+			"Current Iteration: %s\n"
+			"Color Scheme: %s\n",
+			buf[0],
+			buf[1],
+			buf[2]
+			);
+
+		// convert it to a mesh.
+		myInfoText->update();
+		// draw the text overlay
+		myText->render(vx, vy);
 	}
 
     /// this is called to draw the world
@@ -316,6 +400,7 @@ namespace octet {
 
 	  handleInputs();
 
+	  updateText(vx, vy);
     }
   };
 }
