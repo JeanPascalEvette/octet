@@ -175,6 +175,13 @@ namespace octet { namespace scene {
       }
     }
 
+	vec3 get_world_to_screen(vec3_in world) {
+		if (is_ortho)
+			return vec3(world.x() / xscale, world.y() / yscale, -world.z()) * cameraToWorld;
+		else
+			return vec3(xscale * world.z() * world.x(), yscale * world.z() * world.y(), -world.z()) * cameraToWorld;
+	}
+
     /// Get the world to projection matrix for this camera.
     mat4t get_worldToProjection() const {
       mat4t result;

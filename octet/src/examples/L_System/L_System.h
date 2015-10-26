@@ -46,7 +46,6 @@ namespace octet {
     /// this is called when we construct the class before everything is initialised.
     L_System(int argc, char **argv) : app(argc, argv) {
     }
-
     /// this is called once OpenGL is initialized
     void app_init() {
       app_scene =  new visual_scene();
@@ -162,7 +161,7 @@ namespace octet {
 			{
 				for (int u = i; u >= 0; u--)
 				{
-					if(startingAxiom[u] == 'F')
+					if(startingAxiom[u] == 'F' && u != 0)
 					{
 						listBranches.push_back(u);
 						break;

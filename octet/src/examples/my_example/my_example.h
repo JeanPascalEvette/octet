@@ -257,9 +257,11 @@ namespace octet {
 		param_shader *shader = new param_shader("shaders/default.vs", "shaders/hole.fs");
 
 		material *black = new material(vec4(0, 0, 0, 1), shader);
-		float val = radius * 2;
+		vec3 screenPos = convertWorldToScreen(position);
+		float val = radius;
 		black->add_uniform(&val, atom_height, GL_FLOAT, 1, param::stage_fragment);
-		black->add_uniform(&position, atom_pos, GL_FLOAT_VEC3, 1, param::stage_fragment);
+		//black->add_uniform(&screenPos, atom_pos, GL_FLOAT_VEC3, 1, param::stage_fragment);
+
 
 
 		mesh *hole = new mesh();
@@ -534,8 +536,12 @@ namespace octet {
 
 	vec3 convertScreenToWorld(vec3 position)
 	{
-		return vec3((position.x() * 30.0f / 450.0f) - 25.0f, 3.0f, (position.z() * 40.0f / 580.0f) - 25.5f);
-		//return vec3(position.x() / 15 - 25, 3, position.y() / 15 - 25);
+		return vec3((position.x() * 30.0f / 450.0f) - 25.0f, position.y(), (position.z() * 40.0f / 580.0f) - 25.5f);
+	}
+
+	vec3 convertWorldToScreen(vec3 position)
+	{
+		return vec3((position.x() / 30.0f * 450.0f) + 25.0f, position.y(), (position.z() / 40.0f * 580.0f) + 25.5f);
 	}
 
 	/// this is called to handle inputs
