@@ -37,6 +37,8 @@ namespace octet {
 	  int currentNode, currentNodePostInit;
 	  time_t resetTime;
 
+	  bool testMode;
+
 	  int attemptLimit;
 
 	  struct my_vertex {
@@ -67,6 +69,7 @@ namespace octet {
 	  xMousePos = -999, yMousePos = -999;
 	  mat4t mat;
       app_scene->create_default_camera_and_lights();
+	  testMode = false;
 
 	  // Setup camera - make sure it is ready if mobile mode is enabled
 	  mouse_look_helper.init(this, 200.0f / 360.0f, false);
@@ -257,10 +260,7 @@ namespace octet {
 		param_shader *shader = new param_shader("shaders/default.vs", "shaders/hole.fs");
 
 		material *black = new material(vec4(0, 0, 0, 1), shader);
-		vec3 screenPos = convertWorldToScreen(position);
-		float val = radius;
-		black->add_uniform(&val, atom_height, GL_FLOAT, 1, param::stage_fragment);
-		//black->add_uniform(&screenPos, atom_pos, GL_FLOAT_VEC3, 1, param::stage_fragment);
+		black->add_uniform(&radius, atom_height, GL_FLOAT, 1, param::stage_fragment);
 
 
 
@@ -556,7 +556,7 @@ namespace octet {
 		if (attemptLimit <= 0) return;
 		if (is_key_down(key_ctrl))
 		{
-			whiteBall->set_linear_velocity(vec3(24,0,14));
+			testMode = !testMode;
 			return;
 		}
 		else 
@@ -586,6 +586,7 @@ namespace octet {
 
 				if (whiteBall)
 					whiteBall->set_linear_velocity(-1 * vec3(unitVector.x(), 0, unitVector.y()) * vectorLength);
+				if(!testMode)
 				attemptLimit--;
 
 				xMousePos = -999;
@@ -608,14 +609,25 @@ namespace octet {
 		sprintf(buf[1], "%9d", redBalls.size());
 		sprintf(buf[2], "%9d", attemptLimit);
 
-		myInfoText->format(
-			"current level: %s\n"
-			"red balls remaining: %s\n"
-			"attempts remaining: %s\n",
-			buf[0],
-			buf[1],
-			buf[2]
-			);
+		if(attemptLimit > 0)
+			myInfoText->format(
+				"Current Level: %s\n"
+				"Red Balls Remaining: %s\n"
+				"Attempts Remaining: %s\n",
+				buf[0],
+				buf[1],
+				buf[2]
+				);
+		else
+			myInfoText->format(
+				"Current Level: %s\n"
+				"Red Balls Remaining: %s\n"
+				"Attempts Remaining: %s\n"
+				"Game Over : Please Space to Retry",
+				buf[0],
+				buf[1],
+				buf[2]
+				);
 
 		// convert it to a mesh.
 		myInfoText->update();
