@@ -49,6 +49,8 @@ namespace octet {
 
     // scene for drawing box
     ref<visual_scene> app_scene; 
+
+
 	// this function converts three floats into a RGBA 8 bit color
 	static uint32_t make_color(float r, float g, float b) {
 		return 0xff000000 + ((int)(r*255.0f) << 0) + ((int)(g*255.0f) << 8) + ((int)(b*255.0f) << 16);
@@ -79,12 +81,13 @@ namespace octet {
 	  the_camera->get_node()->translate(vec3(0, 0, -35)); // Have to move the camera for it to be centered
 	  mesh_instance *mi;
 
+	  // Setup text display (based on example in octet)
 	  aabb bb(vec3(144.5f, 305.0f, 0.0f), vec3(256, 64, 0));
 	  myText = new text_overlay();
 	  myInfoText = new mesh_text(myText->get_default_font(), "", &bb);
 	  myText->add_mesh_text(myInfoText);
 
-	  // Set the camera depending on camera type
+	  // Set the camera depending on camera type - not designed to be used in game but useful for debugging
 	  CameraType CameraPosition = CameraType::TOPDOWN;
 	  if (CameraPosition == CameraType::TOPDOWN)
 	  {
@@ -172,15 +175,8 @@ namespace octet {
 
 
 
-	  // Also set some friction and restitution values. Those need to be modified to make it more realistic
-	  
-
-
-	  
-	  
-
+	  // Also set some friction and restitution values. 
 	  field->set_resitution(1.0f);
-	 // field->set_friction(1.0f);
 	  field->set_rolling_friction(1.0f);
 	  wall->set_resitution(1.0f);
 	  wall2->set_resitution(1.0f);
@@ -204,6 +200,7 @@ namespace octet {
 		strcat(levelName, std::to_string(currentLevel).c_str());
 		strcat(levelName, ".xml");
 
+		//Read XML file of the level to load data
 		tinyxml2::XMLDocument doc;	
 		doc.LoadFile(levelName);
 		attemptLimit = atof(doc.FirstChildElement("Data")->FirstChildElement("AttemptLimit")->GetText());;
@@ -221,11 +218,12 @@ namespace octet {
 		app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), white, true, 10.0f);
 		whiteBall = app_scene->get_mesh_instance(currentNode++)->get_node();
 		whiteBall->set_linear_velocity(vec3(whiteBallVelX, whiteBallVelY, whiteBallVelZ));
-		//whiteBall->set_friction(0.5f);
 		whiteBall->set_rolling_friction(0.5f);
 		whiteBall->set_resitution(0.75f);
 		whiteBall->activateForever();
 
+
+		// Generate Red Balls
 		redBalls = std::vector<ref<scene_node>>();
 		tinyxml2::XMLNode * el = doc.FirstChildElement("Data")->FirstChildElement("ListOfRedBall")->FirstChildElement();
 		while (el != nullptr)
@@ -242,21 +240,18 @@ namespace octet {
 			app_scene->add_shape(mat, new mesh_sphere(vec3(0), 1), red, true, 10.0f);
 			scene_node *redBall = app_scene->get_mesh_instance(currentNode++)->get_node();
 			redBall->set_linear_velocity(vec3(redBallVelX, redBallVelY, redBallVelZ));
-			//redBall->set_friction(0.5f);
 			redBall->set_rolling_friction(0.5f);
 			redBall->set_resitution(0.75f);
 			redBalls.push_back(redBall);
 			el = el->NextSibling();
 
 		}
-
-		//whiteBall->set_linear_velocity(vec3(24, 0, 14));
 	}
 
 	/// This function generates a black disc to be used as a hole. It is based on the helix object created on example_geometry
 	void generateHole(vec3 position, float radius)
 	{
-		// use a shader that just outputs the color_ attribute.
+		// use a shader that just outputs a different black depending on distance from center.
 		param_shader *shader = new param_shader("shaders/default.vs", "shaders/hole.fs");
 
 		material *black = new material(vec4(0, 0, 0, 1), shader);
@@ -405,7 +400,7 @@ namespace octet {
 		}
 
 
-		//Add the hole to the app_scene
+		//Add the ray to the app_scene
 		scene_node *node = new scene_node();
 		rayDrag = node;
 		app_scene->add_child(node);
@@ -503,10 +498,13 @@ namespace octet {
 			}
 		}
 
+		// If Every red ball is in a hole, go to next level
 		if (redBalls.size() == 0)
 			goToNextLevel();
 	}
 
+
+	/// This function resets the board and reloads all data from the file
 	void resetBoard()
 	{
 		if (resetTime < clock())
@@ -539,27 +537,27 @@ namespace octet {
 		return vec3((position.x() * 30.0f / 450.0f) - 25.0f, position.y(), (position.z() * 40.0f / 580.0f) - 25.5f);
 	}
 
-	vec3 convertWorldToScreen(vec3 position)
-	{
-		return vec3((position.x() / 30.0f * 450.0f) + 25.0f, position.y(), (position.z() / 40.0f * 580.0f) + 25.5f);
-	}
 
 	/// this is called to handle inputs
 	void handleInputs()
 	{
+		// Space = Reset
 		if (is_key_down(key_space))
 		{
 			resetBoard();
 			return;
 		}
+
+
 		if (!whiteBall) return;
 		if (attemptLimit <= 0) return;
+
+		// Ctrl = Debug
 		if (is_key_down(key_ctrl))
 		{
 			testMode = !testMode;
-			return;
 		}
-		else 
+		else // Handle mouse inputs for dragging
 		{
 			eraseRay();
 			int newX, newY;
@@ -664,8 +662,7 @@ namespace octet {
 	  handleInputs();
 	  updateText(vx, vy);
 
-	  //std::string whiteBallHeight = std::to_string(whiteBall->get_position().y()) + " \n";
-	  //printf(whiteBallHeight.c_str());
-    }
+	
+	}
   };
 }

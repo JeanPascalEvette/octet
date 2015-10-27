@@ -17,14 +17,16 @@ namespace octet {
 		string type;
 		string color;
 		vec3 location;
+		vec3 velocity;
 		std::vector<vec3> rotation;
 		float weight;
 
 	public :
-		predef_shape(string _type, vec3 _location, std::vector<vec3> _rotation, float _weight, string _color) { type = _type; location = _location; rotation = _rotation; weight = _weight; color = _color; }
+		predef_shape(string _type, vec3 _location, vec3 _velocity, std::vector<vec3> _rotation, float _weight, string _color) { type = _type; location = _location; velocity = _velocity; rotation = _rotation; weight = _weight; color = _color; }
 
 		string getType() { return type; }
 		vec3 getLoc() { return location; }
+		vec3 getVel() { return velocity; }
 		std::vector<vec3> getRot() { return rotation; }
 		float getWeight() { return weight; }
 		string getColor() { return color; }
@@ -119,7 +121,8 @@ namespace octet {
 			{
 				string type = el->FirstChildElement("Type")->GetText();
 				vec3 location = vec3(atof(el->FirstChildElement("Location")->FirstChildElement("x")->GetText()), atof(el->FirstChildElement("Location")->FirstChildElement("y")->GetText()), atof(el->FirstChildElement("Location")->FirstChildElement("z")->GetText()));
-			
+				vec3 velocity = vec3(atof(el->FirstChildElement("Velocity")->FirstChildElement("x")->GetText()), atof(el->FirstChildElement("Velocity")->FirstChildElement("y")->GetText()), atof(el->FirstChildElement("Velocity")->FirstChildElement("z")->GetText()));
+
 				std::vector<vec3> myRotations = std::vector<vec3>();
 				tinyxml2::XMLNode * el2 = el->FirstChildElement("RotationList")->FirstChildElement();
 				while (el2 != nullptr)
@@ -131,7 +134,7 @@ namespace octet {
 				float weight = atoi(el->FirstChildElement("Weight")->GetText());
 				string color = el->FirstChildElement("Color")->GetText();
 
-				predef_shape myShape = predef_shape(type, location, myRotations, weight, color);
+				predef_shape myShape = predef_shape(type, location, velocity, myRotations, weight, color);
 				listOfShapes.push_back(myShape);
 				el = el->NextSibling();
 			}
@@ -196,6 +199,7 @@ namespace octet {
 				{
 					node = app_scene->createNewObjectWithRigidBody(mat, myMat, new mesh_cylinder(zcylinder(vec3(0, 0, 0), 2, 4)), listOfShapes[curentShape].getWeight(), true, &myRB);
 				}
+				node->set_linear_velocity(listOfShapes[curentShape].getVel());
 				myObjects.push_back(node);
 				listOfRB.push_back(myRB);
 			}

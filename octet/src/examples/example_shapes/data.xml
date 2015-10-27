@@ -5,20 +5,30 @@
 			<Type>Sphere</Type>
 			<Location>
 				<x>-13</x>
-				<y>6</y>
+				<y>0</y>
 				<z>0</z>
 			</Location>
+			<Velocity>
+				<x>0</x>
+				<y>0</y>
+				<z>0</z>
+			</Velocity>
 			<Color>blue</Color>
 			<RotationList></RotationList>
-			<Weight>1.0f</Weight>
+			<Weight>10.0f</Weight>
 		</Shape>
 		<Shape>
 			<Type>Sphere</Type>
 			<Location>
-				<x>-10</x>
-				<y>15</y>
+				<x>-8</x>
+				<y>0</y>
 				<z>0</z>
 			</Location>
+			<Velocity>
+				<x>100</x>
+				<y>0</y>
+				<z>100</z>
+			</Velocity>
 			<Color>blue</Color>
 			<RotationList></RotationList>
 			<Weight>1.0f</Weight>
@@ -30,6 +40,11 @@
 				<y>0</y>
 				<z>5</z>
 			</Location>
+			<Velocity>
+				<x>0</x>
+				<y>0</y>
+				<z>0</z>
+			</Velocity>
 			<Color>red</Color>
 			<RotationList></RotationList>
 			<Weight>1.0f</Weight>
@@ -41,6 +56,11 @@
 				<y>5</y>
 				<z>5</z>
 			</Location>
+			<Velocity>
+				<x>0</x>
+				<y>0</y>
+				<z>0</z>
+			</Velocity>
 			<Color>green</Color>
 			<RotationList></RotationList>
 			<Weight>1.0f</Weight>
@@ -52,25 +72,13 @@
 				<y>0</y>
 				<z>5</z>
 			</Location>
+			<Velocity>
+				<x>0</x>
+				<y>0</y>
+				<z>0</z>
+			</Velocity>
 			<Color>blue</Color>
 			<RotationList></RotationList>
-			<Weight>100.0f</Weight>
-		</Shape>
-		<Shape>
-			<Type>Cylinder</Type>
-			<Location>
-				<x>2</x>
-				<y>0</y>
-				<z>-1</z>
-			</Location>
-			<Color>red</Color>
-			<RotationList>
-				<Rotation>
-					<x>0</x>
-					<y>90</y>
-					<z>0</z>
-				</Rotation>
-			</RotationList>
 			<Weight>100.0f</Weight>
 		</Shape>
 	</ShapeList>

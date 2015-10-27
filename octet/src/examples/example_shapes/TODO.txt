@@ -1,9 +1,6 @@
 Shapes : 
- - Modify Spring to make it look better
  - README
  - Modify demo to make it look better (Make it a game if possible)
 
  my_example : 
- - Finish game (set up level(s))
- - Create shader (Color shader for balls?)
  - Cleanup
