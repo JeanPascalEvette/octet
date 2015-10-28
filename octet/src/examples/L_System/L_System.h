@@ -28,11 +28,13 @@ namespace octet {
 	std::string axiom;
 	float setupAngle;
 	int iterations;
+	float additionalThickness;
 
 
 	vec3 nextPoint;
 	int currentFile;
 	int currentIteration;
+
 
 	enum ColorScheme {
 		ALTERNATING,
@@ -41,7 +43,7 @@ namespace octet {
 	};
 	ColorScheme colorSchemeType;
 
-	const float HALFSIZE = 1.0f;
+	float HALFSIZE = 1.0f;
   public:
     /// this is called when we construct the class before everything is initialised.
     L_System(int argc, char **argv) : app(argc, argv) {
@@ -53,6 +55,7 @@ namespace octet {
 	  app_scene->get_camera_instance(0)->set_far_plane(100000.0f);
 	  currentFile = 0;
 	  currentIteration = 1;
+	  additionalThickness = 0;
 	  colorSchemeType = ALTERNATING;
 
 
@@ -250,11 +253,11 @@ namespace octet {
 		mat.rotate(90.0f, 1, 0, 0);
 		mesh_cylinder *line;
 		if (iterations == 7)
-			line = new mesh_cylinder(zcylinder(vec3(0), 0.5f, HALFSIZE), mat);
+			line = new mesh_cylinder(zcylinder(vec3(0), additionalThickness+0.5f, HALFSIZE), mat);
 		else if (iterations == 6)
-			line = new mesh_cylinder(zcylinder(vec3(0), 0.3f, HALFSIZE), mat);
+			line = new mesh_cylinder(zcylinder(vec3(0), additionalThickness+0.3f, HALFSIZE), mat);
 		else
-			line = new mesh_cylinder(zcylinder(vec3(0), 0.2f, HALFSIZE), mat);
+			line = new mesh_cylinder(zcylinder(vec3(0), additionalThickness+0.2f, HALFSIZE), mat);
 		scene_node *node = new scene_node();
 		app_scene->add_child(node);
 		app_scene->add_mesh_instance(new mesh_instance(node, line, color));
@@ -355,6 +358,42 @@ namespace octet {
 			reset();
 			generateTree();
 		}
+		else if (is_key_going_down(key_f1))
+		{
+			HALFSIZE += 0.2f;
+			reset();
+			generateTree();
+		}
+		else if (is_key_going_down(key_f2))
+		{
+			HALFSIZE -= 0.2f;
+			reset();
+			generateTree();
+		}
+		else if (is_key_going_down(key_f3))
+		{
+			setupAngle += 5.0f;
+			reset();
+			generateTree();
+		}
+		else if (is_key_going_down(key_f4))
+		{
+			setupAngle -= 5.0f;
+			reset();
+			generateTree();
+		}
+		else if (is_key_going_down(key_f5))
+		{
+			additionalThickness += 0.1f;
+			reset();
+			generateTree();
+		}
+		else if (is_key_going_down(key_f6))
+		{
+			additionalThickness -= 0.1f;
+			reset();
+			generateTree();
+		}
 	}
 
 
@@ -395,9 +434,9 @@ namespace octet {
       // draw the scene
       app_scene->render((float)vx / vy);
 
-	  checkCamera(vx, vy);
-
 	  handleInputs();
+
+	  checkCamera(vx, vy);
 
 	  updateText(vx, vy);
     }
