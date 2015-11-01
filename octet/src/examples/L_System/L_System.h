@@ -58,6 +58,7 @@ namespace octet {
 	vec3 nextPoint;
 	int currentFile;
 	int currentIteration;
+	float additionalThickness;
 
 	enum ColorScheme {
 		ALTERNATING,
@@ -66,7 +67,7 @@ namespace octet {
 	};
 	ColorScheme colorSchemeType;
 
-	const float HALFSIZE = 1.0f;
+	float lineHalfLength = 1.0f;
   public:
     /// this is called when we construct the class before everything is initialised.
     L_System(int argc, char **argv) : app(argc, argv) {
@@ -252,22 +253,22 @@ namespace octet {
 		vec3 midPoint, endPoint;
 		
 			midPoint = startingPoint;
-			midPoint.x() = midPoint.x() + HALFSIZE *cos((angle + 90) * CL_M_PI / 180);
-			midPoint.y() = midPoint.y() + HALFSIZE *sin((angle + 90)* CL_M_PI / 180);
+			midPoint.x() = midPoint.x() + lineHalfLength *cos((angle + 90) * CL_M_PI / 180);
+			midPoint.y() = midPoint.y() + lineHalfLength *sin((angle + 90)* CL_M_PI / 180);
 			endPoint = startingPoint;
-			endPoint.x() = endPoint.x() + 2.0f*HALFSIZE *cos((angle + 90) * CL_M_PI / 180);
-			endPoint.y() = endPoint.y() + 2.0f*HALFSIZE *sin((angle + 90) * CL_M_PI / 180);
+			endPoint.x() = endPoint.x() + 2.0f*lineHalfLength *cos((angle + 90) * CL_M_PI / 180);
+			endPoint.y() = endPoint.y() + 2.0f*lineHalfLength *sin((angle + 90) * CL_M_PI / 180);
 		
 		mat4t mat = mat4t();
 		mat.loadIdentity();
 		mat.rotate(90.0f, 1, 0, 0);
 		mesh_cylinder *line;
 		if (currentModel.getIterations() == 7)
-			line = new mesh_cylinder(zcylinder(vec3(0), 0.5f, HALFSIZE), mat);
+			line = new mesh_cylinder(zcylinder(vec3(0), 0.5f, lineHalfLength), mat);
 		else if (currentModel.getIterations() == 6)
-			line = new mesh_cylinder(zcylinder(vec3(0), 0.3f, HALFSIZE), mat);
+			line = new mesh_cylinder(zcylinder(vec3(0), 0.3f, lineHalfLength), mat);
 		else
-			line = new mesh_cylinder(zcylinder(vec3(0), 0.2f, HALFSIZE), mat);
+			line = new mesh_cylinder(zcylinder(vec3(0), 0.2f, lineHalfLength), mat);
 		scene_node *node = new scene_node();
 		app_scene->add_child(node);
 		app_scene->add_mesh_instance(new mesh_instance(node, line, color));
@@ -284,7 +285,7 @@ namespace octet {
 
 	void checkCamera(int vx, int vy)
 	{
-		float margin = HALFSIZE;
+		float margin = lineHalfLength;
 		if (listOfLines.size() == 0) return;
 
 		float highestY = 0;
@@ -368,6 +369,42 @@ namespace octet {
 			reset();
 			generateTree();
 		}
+		else if (is_key_going_down(key_f1))
+		{
+			lineHalfLength += 0.2f;
+			reset();
+			generateTree();
+		}
+		else if (is_key_going_down(key_f2))
+		{
+			lineHalfLength -= 0.2f;
+			reset();
+			generateTree();
+		}
+		else if (is_key_going_down(key_f3))
+		{
+			currentModel.increaseAngle();
+			reset();
+			generateTree();
+		}
+		else if (is_key_going_down(key_f4))
+		{
+			currentModel.reduceAngle();
+			reset();
+			generateTree();
+		}
+		else if (is_key_going_down(key_f5))
+		{
+			additionalThickness += 0.1f;
+			reset();
+			generateTree();
+		}
+		else if (is_key_going_down(key_f6))
+		{
+			additionalThickness -= 0.1f;
+			reset();
+			generateTree();
+		}
 	}
 
 
@@ -408,9 +445,9 @@ namespace octet {
       // draw the scene
       app_scene->render((float)vx / vy);
 
-	  checkCamera(vx, vy);
-
 	  handleInputs();
+
+	  checkCamera(vx, vy);
 
 	  updateText(vx, vy);
     }
