@@ -2,5 +2,4 @@ Shapes :
  - README
  - Modify demo to make it look better (Make it a game if possible)
 
- my_example : 
- - Cleanup
+

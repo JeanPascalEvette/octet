@@ -7,6 +7,36 @@
 #include <sstream>
 #include "tinyxml2.h"
 namespace octet {
+	class Model
+	{
+		std::string axiom;
+		float angle;
+		std::map<char, std::string> rules;
+		int iterations;
+
+	public:
+		Model() {}
+		Model(std::string myAxiom, float myAngle, std::map<char, std::string> myRules, int myIterations)
+		{
+			axiom = myAxiom;
+			angle = myAngle;
+			rules = myRules;
+			iterations = myIterations;
+		}
+		std::string getAxiom() { return axiom; }
+		float getAngle() {
+			return angle;
+		}
+		std::map<char, std::string> getRules() {
+			return rules;
+		}
+		int getIterations() {
+			return iterations;
+		}
+		void increaseAngle() { angle += 5.0f; }
+		void reduceAngle() { angle -= 5.0f; }
+	};
+
   /// Scene containing a box with octet.
   class L_System : public app {
     // scene for drawing box
@@ -20,21 +50,16 @@ namespace octet {
 	int currentMaterial;
 
 	std::vector<ref<scene_node>> listOfLines;
-	std::vector<vec3> savedPointStack;
-	std::vector<float> savedAngleStack;
+	std::vector<std::pair<vec3, float>> savedPointStack;
 
-	std::vector<std::string> rules;
-	std::map<char, std::string> decodedRules;
-	std::string axiom;
-	float setupAngle;
-	int iterations;
-	float additionalThickness;
+	Model currentModel;
 
 
 	vec3 nextPoint;
 	int currentFile;
 	int currentIteration;
-
+	float additionalThickness;
+	float lineHalfLength;
 
 	enum ColorScheme {
 		ALTERNATING,
@@ -43,7 +68,6 @@ namespace octet {
 	};
 	ColorScheme colorSchemeType;
 
-	float HALFSIZE = 1.0f;
   public:
     /// this is called when we construct the class before everything is initialised.
     L_System(int argc, char **argv) : app(argc, argv) {
@@ -55,8 +79,9 @@ namespace octet {
 	  app_scene->get_camera_instance(0)->set_far_plane(100000.0f);
 	  currentFile = 0;
 	  currentIteration = 1;
-	  additionalThickness = 0;
 	  colorSchemeType = ALTERNATING;
+	  lineHalfLength = 1.0f;
+	  additionalThickness = 0.0f;
 
 
 
@@ -75,9 +100,8 @@ namespace octet {
 	void loadFile()
 	{
 
-
-		rules = std::vector<std::string>();
-		decodedRules = std::map<char, std::string>();
+		std::vector<std::string> rules = std::vector<std::string>();
+		std::map<char, std::string> decodedRules = std::map<char, std::string>();
 
 		tinyxml2::XMLDocument doc;
 		char aChar =  65 + currentFile;
@@ -85,8 +109,8 @@ namespace octet {
 		fileName += aChar;
 		fileName += ".xml";
 		doc.LoadFile(fileName.c_str());
-		axiom = doc.FirstChildElement("Data")->FirstChildElement("Axiom")->GetText();
-		setupAngle = atof(doc.FirstChildElement("Data")->FirstChildElement("Angle")->GetText());
+		std::string  axiom = doc.FirstChildElement("Data")->FirstChildElement("Axiom")->GetText();
+		float setupAngle = atof(doc.FirstChildElement("Data")->FirstChildElement("Angle")->GetText());
 		tinyxml2::XMLNode * el = doc.FirstChildElement("Data")->FirstChildElement("Rules")->FirstChildElement();
 		while (el != nullptr)
 		{
@@ -101,8 +125,8 @@ namespace octet {
 			decodedRules[pre] = post;
 
 		}
-		iterations = atoi(doc.FirstChildElement("Data")->FirstChildElement("Iterations")->GetText());
-
+		int iterations = atoi(doc.FirstChildElement("Data")->FirstChildElement("Iterations")->GetText());
+		currentModel = Model(axiom, setupAngle, decodedRules, iterations);
 		generateTree();
 	}
 
@@ -117,8 +141,7 @@ namespace octet {
 		material *black = new material(vec4(0, 0, 0, 1));
 		darkGreen = new material(vec4(0, 0.5f, 0, 1));
 		brown = new material(vec4(0.2f, 0.2f, 0.2f,1));
-		savedPointStack = std::vector<vec3>();
-		savedAngleStack = std::vector<float>();
+		savedPointStack = std::vector<std::pair<vec3, float>>();
 		currentTreeMaterial = brown;
 
 
@@ -129,7 +152,8 @@ namespace octet {
 		listOfMaterials.push_back(blue);
 		listOfMaterials.push_back(white);
 		listOfMaterials.push_back(black);
-		std::string startingAxiom = axiom;
+		std::string startingAxiom = currentModel.getAxiom();
+		std::map<char, std::string> rules = currentModel.getRules();
 		nextPoint = vec3(0, 0, 0);
 		for (int i = 0; i < currentIteration; i++)
 		{
@@ -139,7 +163,7 @@ namespace octet {
 				char currentChar = startingAxiom[u];
 				bool found = false;
 				std::map<char, std::string>::iterator it;
-				for (it = decodedRules.begin(); it != decodedRules.end();)
+				for (it = rules.begin(); it != rules.end();)
 				{
 					if (it->first == currentChar)
 					{
@@ -183,11 +207,11 @@ namespace octet {
 			}
 			else if (startingAxiom[i] == '+')
 			{
-				angle += setupAngle;
+				angle += currentModel.getAngle();
 			}
 			else if (startingAxiom[i] == '-')
 			{
-				angle -= setupAngle;
+				angle -= currentModel.getAngle();
 			}
 			else if (startingAxiom[i] == '[')
 			{
@@ -206,20 +230,17 @@ namespace octet {
 
 	std::pair<vec3, float> retrievePoint()
 	{
-		vec3 point = savedPointStack[savedPointStack.size() - 1];
+
+		std::pair<vec3, float> retVal = savedPointStack[savedPointStack.size() - 1];
 		savedPointStack.pop_back();
 		savedPointStack.shrink_to_fit();
-		float angle = savedAngleStack[savedAngleStack.size() - 1];
-		savedAngleStack.pop_back();
-		savedAngleStack.shrink_to_fit();
-		std::pair<vec3, float> retVal = std::pair<vec3, float>(point, angle);
 		return retVal;
 	}
 
 	void rememberPoint(vec3 point, float angle)
 	{
-		savedPointStack.push_back(point);
-		savedAngleStack.push_back(angle);
+		std::pair<vec3, float> newPoint = std::pair<vec3, float>(point, angle);
+		savedPointStack.push_back(newPoint);
 	}
 
 	vec3 drawLine(vec3 startingPoint, float angle = 0.0f)
@@ -232,32 +253,24 @@ namespace octet {
 		else if(colorSchemeType == RANDOM)
 			currentMaterial = rand() % listOfMaterials.size();
 		vec3 midPoint, endPoint;
-		if (angle == 0.0f)
-		{
+		
 			midPoint = startingPoint;
-			midPoint.y() = midPoint.y() + HALFSIZE;
+			midPoint.x() = midPoint.x() + lineHalfLength *cos((angle + 90) * CL_M_PI / 180);
+			midPoint.y() = midPoint.y() + lineHalfLength *sin((angle + 90)* CL_M_PI / 180);
 			endPoint = startingPoint;
-			endPoint.y() = endPoint.y() + 2.0f*HALFSIZE;
-		}
-		else
-		{
-			midPoint = startingPoint;
-			midPoint.x() = midPoint.x() + HALFSIZE *cos((angle + 90) * CL_M_PI / 180);
-			midPoint.y() = midPoint.y() + HALFSIZE *sin((angle + 90)* CL_M_PI / 180);
-			endPoint = startingPoint;
-			endPoint.x() = endPoint.x() + 2.0f*HALFSIZE *cos((angle + 90) * CL_M_PI / 180);
-			endPoint.y() = endPoint.y() + 2.0f*HALFSIZE *sin((angle + 90) * CL_M_PI / 180);
-		}
+			endPoint.x() = endPoint.x() + 2.0f*lineHalfLength *cos((angle + 90) * CL_M_PI / 180);
+			endPoint.y() = endPoint.y() + 2.0f*lineHalfLength *sin((angle + 90) * CL_M_PI / 180);
+		
 		mat4t mat = mat4t();
 		mat.loadIdentity();
 		mat.rotate(90.0f, 1, 0, 0);
 		mesh_cylinder *line;
-		if (iterations == 7)
-			line = new mesh_cylinder(zcylinder(vec3(0), additionalThickness+0.5f, HALFSIZE), mat);
-		else if (iterations == 6)
-			line = new mesh_cylinder(zcylinder(vec3(0), additionalThickness+0.3f, HALFSIZE), mat);
+		if (currentModel.getIterations() == 7)
+			line = new mesh_cylinder(zcylinder(vec3(0), additionalThickness + 0.5f, lineHalfLength), mat);
+		else if (currentModel.getIterations() == 6)
+			line = new mesh_cylinder(zcylinder(vec3(0), additionalThickness + 0.3f, lineHalfLength), mat);
 		else
-			line = new mesh_cylinder(zcylinder(vec3(0), additionalThickness+0.2f, HALFSIZE), mat);
+			line = new mesh_cylinder(zcylinder(vec3(0), additionalThickness + 0.2f, lineHalfLength), mat);
 		scene_node *node = new scene_node();
 		app_scene->add_child(node);
 		app_scene->add_mesh_instance(new mesh_instance(node, line, color));
@@ -274,7 +287,7 @@ namespace octet {
 
 	void checkCamera(int vx, int vy)
 	{
-		float margin = HALFSIZE;
+		float margin = lineHalfLength;
 		if (listOfLines.size() == 0) return;
 
 		float highestY = 0;
@@ -338,7 +351,7 @@ namespace octet {
 		}
 		else if (is_key_going_down(key_right))
 		{
-			if (currentIteration == iterations) return;
+			if (currentIteration == currentModel.getIterations()) return;
 			currentIteration++;
 			reset();
 			generateTree();
@@ -360,25 +373,25 @@ namespace octet {
 		}
 		else if (is_key_going_down(key_f1))
 		{
-			HALFSIZE += 0.2f;
+			lineHalfLength += 0.2f;
 			reset();
 			generateTree();
 		}
 		else if (is_key_going_down(key_f2))
 		{
-			HALFSIZE -= 0.2f;
+			lineHalfLength -= 0.2f;
 			reset();
 			generateTree();
 		}
 		else if (is_key_going_down(key_f3))
 		{
-			setupAngle += 5.0f;
+			currentModel.increaseAngle();
 			reset();
 			generateTree();
 		}
 		else if (is_key_going_down(key_f4))
 		{
-			setupAngle -= 5.0f;
+			currentModel.reduceAngle();
 			reset();
 			generateTree();
 		}

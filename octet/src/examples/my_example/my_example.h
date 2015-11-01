@@ -88,7 +88,7 @@ namespace octet {
 	  myText->add_mesh_text(myInfoText);
 
 	  // Set the camera depending on camera type - not designed to be used in game but useful for debugging
-	  CameraType CameraPosition = CameraType::TOPDOWN;
+	  CameraType CameraPosition = CameraType::MOBILE;
 	  if (CameraPosition == CameraType::TOPDOWN)
 	  {
 		  app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 60, 0));
