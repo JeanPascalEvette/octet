@@ -59,6 +59,7 @@ namespace octet {
 	int currentFile;
 	int currentIteration;
 	float additionalThickness;
+	float lineHalfLength;
 
 	enum ColorScheme {
 		ALTERNATING,
@@ -67,7 +68,6 @@ namespace octet {
 	};
 	ColorScheme colorSchemeType;
 
-	float lineHalfLength = 1.0f;
   public:
     /// this is called when we construct the class before everything is initialised.
     L_System(int argc, char **argv) : app(argc, argv) {
@@ -80,6 +80,8 @@ namespace octet {
 	  currentFile = 0;
 	  currentIteration = 1;
 	  colorSchemeType = ALTERNATING;
+	  lineHalfLength = 1.0f;
+	  additionalThickness = 0.0f;
 
 
 
@@ -264,11 +266,11 @@ namespace octet {
 		mat.rotate(90.0f, 1, 0, 0);
 		mesh_cylinder *line;
 		if (currentModel.getIterations() == 7)
-			line = new mesh_cylinder(zcylinder(vec3(0), 0.5f, lineHalfLength), mat);
+			line = new mesh_cylinder(zcylinder(vec3(0), additionalThickness + 0.5f, lineHalfLength), mat);
 		else if (currentModel.getIterations() == 6)
-			line = new mesh_cylinder(zcylinder(vec3(0), 0.3f, lineHalfLength), mat);
+			line = new mesh_cylinder(zcylinder(vec3(0), additionalThickness + 0.3f, lineHalfLength), mat);
 		else
-			line = new mesh_cylinder(zcylinder(vec3(0), 0.2f, lineHalfLength), mat);
+			line = new mesh_cylinder(zcylinder(vec3(0), additionalThickness + 0.2f, lineHalfLength), mat);
 		scene_node *node = new scene_node();
 		app_scene->add_child(node);
 		app_scene->add_mesh_instance(new mesh_instance(node, line, color));
