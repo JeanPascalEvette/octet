@@ -13,6 +13,7 @@ namespace octet {
 		float angle;
 		std::map<char, std::string> rules;
 		int iterations;
+		bool noFSystem;
 
 	public:
 		Model() {}
@@ -22,6 +23,14 @@ namespace octet {
 			angle = myAngle;
 			rules = myRules;
 			iterations = myIterations;
+			noFSystem = true;
+			std::map<char, std::string>::iterator it;
+			for (it = myRules.begin(); it != myRules.end();)
+			{
+				if (it->second.find('F') != -1)
+					noFSystem = false;
+				it++;
+			}
 		}
 		std::string getAxiom() { return axiom; }
 		float getAngle() {
@@ -35,6 +44,9 @@ namespace octet {
 		}
 		void increaseAngle() { angle += 5.0f; }
 		void reduceAngle() { angle -= 5.0f; }
+		bool isNoFSystem() {
+			return noFSystem;
+		}
 	};
 
   /// Scene containing a box with octet.
@@ -198,7 +210,7 @@ namespace octet {
 		}
 		for (int i = 0; i < startingAxiom.size(); i++)
 		{
-			if (startingAxiom[i] == 'F')
+			if (startingAxiom[i] == 'F' || (currentModel.isNoFSystem() && (startingAxiom[i] == 'A')))
 			{
 				for (int u = 0; u < listBranches.size(); u++)
 					if (listBranches[u] == i)
@@ -264,13 +276,14 @@ namespace octet {
 		mat4t mat = mat4t();
 		mat.loadIdentity();
 		mat.rotate(90.0f, 1, 0, 0);
-		mesh_cylinder *line;
+
+		mesh_box *line;
 		if (currentModel.getIterations() == 7)
-			line = new mesh_cylinder(zcylinder(vec3(0), additionalThickness + 0.5f, lineHalfLength), mat);
+			line = new mesh_box(vec3(additionalThickness + 0.5f, 0.1f, lineHalfLength), mat);
 		else if (currentModel.getIterations() == 6)
-			line = new mesh_cylinder(zcylinder(vec3(0), additionalThickness + 0.3f, lineHalfLength), mat);
+			line = new mesh_box(vec3(additionalThickness + 0.3f, 0.1f, lineHalfLength), mat);
 		else
-			line = new mesh_cylinder(zcylinder(vec3(0), additionalThickness + 0.2f, lineHalfLength), mat);
+			line = new mesh_box(vec3(additionalThickness + 0.2f, 0.1f, lineHalfLength), mat);
 		scene_node *node = new scene_node();
 		app_scene->add_child(node);
 		app_scene->add_mesh_instance(new mesh_instance(node, line, color));
@@ -294,6 +307,10 @@ namespace octet {
 		for (int i = 0; i < listOfLines.size(); i++)
 			if (listOfLines[i]->get_position().y() > highestY)
 				highestY = listOfLines[i]->get_position().y();
+		float lowestY = 0;
+		for (int i = 0; i < listOfLines.size(); i++)
+			if (listOfLines[i]->get_position().y() < lowestY)
+				lowestY = listOfLines[i]->get_position().y();
 
 		vec2 fov = app_scene->get_camera_instance(0)->getFov();
 		vec3 cameraPos = app_scene->get_camera_instance(0)->get_node()->get_position();
@@ -316,6 +333,7 @@ namespace octet {
 			lengthAdj = (cameraPos - cameraOnPlane).length();
 			lengthOppY = 2 * (tan(fov.y() / 2 * CL_M_PI / 180) * lengthAdj);
 		}
+
 	}
 
 	void reset()
@@ -329,14 +347,14 @@ namespace octet {
 		listOfLines.shrink_to_fit();
 		app_scene = new visual_scene();
 		app_scene->create_default_camera_and_lights();
-		app_scene->get_camera_instance(0)->set_far_plane(100000.0f);
+		app_scene->get_camera_instance(0)->set_far_plane(1000000000.0f);
 	}
 
 	void handleInputs()
 	{
 		if (is_key_going_down(key_up))
 		{
-			currentFile = (currentFile + 1) % 6;
+			currentFile = (currentFile + 1) % 8;
 			currentIteration = 1;
 			reset();
 			loadFile();

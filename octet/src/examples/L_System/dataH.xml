@@ -1,9 +1,10 @@
 <?xml version="1.0"?>
 <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-<Axiom>F</Axiom>
-<Angle>90</Angle>
+<Axiom>X</Axiom>
+<Angle>22.5</Angle>
 <Rules>
-	<Rule>F->F+F-F-F+F</Rule>
+	<Rule>F->FF</Rule>
+	<Rule>X->F-[[X]+X]+F[+FX]-X</Rule>
 </Rules>
 <Iterations>5</Iterations>
 </Data>
