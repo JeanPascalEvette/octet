@@ -319,8 +319,9 @@ namespace octet {
 
 		float lengthAdj = (cameraPos - cameraOnPlane).length();
 		float lengthOppY = 2*(tan(fov.y()/2 * CL_M_PI / 180) * lengthAdj);
-		//tan(fov.y()) = Opp/Adj
-		//TOA
+
+
+		float newLength = 4.0f * app_scene->get_camera_instance(0)->get_node()->get_position().z() / 34.6410179f;
 
 
 		while (highestY - margin   < -lengthOppY || highestY + margin   > lengthOppY)
@@ -334,6 +335,12 @@ namespace octet {
 			lengthOppY = 2 * (tan(fov.y() / 2 * CL_M_PI / 180) * lengthAdj);
 		}
 
+
+		while (lowestY < -newLength)
+		{
+			app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 0, 1.0f));
+			newLength = 4.0f * app_scene->get_camera_instance(0)->get_node()->get_position().z() / 34.6410179f;
+		}
 	}
 
 	void reset()
@@ -363,7 +370,7 @@ namespace octet {
 		{
 			currentFile = (currentFile - 1);
 			currentIteration = 1;
-			if (currentFile < 0) currentFile = 5;
+			if (currentFile < 0) currentFile = 7;
 			reset();
 			loadFile();
 		}
