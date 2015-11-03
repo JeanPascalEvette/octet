@@ -570,6 +570,7 @@ namespace octet {
 			eraseRay();
 			int newX, newY;
 			get_mouse_pos(newX, newY);
+			
 			vec3 mouseWorldPos = convertScreenToWorld(vec3(newX, 3, newY));
 			if (is_key_down(key_lmb))
 				printf("X: %d Y: %d\n X2: %f Y2: %f\n\n", newX, newY, mouseWorldPos.x(), mouseWorldPos.z());
