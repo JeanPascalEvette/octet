@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-<AttemptLimit>1</AttemptLimit>
+<AttemptLimit>2</AttemptLimit>
 <WhiteBall>
 	<Location>
-		<x>-10</x>
+		<x>0</x>
 		<y>1</y>
 		<z>0</z>
 	</Location>
@@ -16,9 +16,9 @@
 <ListOfRedBall>
 	<RedBall>
 		<Location>
-			<x>-11</x>
+			<x>11</x>
 			<y>1</y>
-			<z>-17</z>
+			<z>0</z>
 		</Location>
 		<Velocity>
 			<x>0</x>
@@ -28,9 +28,9 @@
 	</RedBall>
 	<RedBall>
 		<Location>
-			<x>12</x>
+			<x>-12</x>
 			<y>1</y>
-			<z>15</z>
+			<z>-13</z>
 		</Location>
 		<Velocity>
 			<x>0</x>
