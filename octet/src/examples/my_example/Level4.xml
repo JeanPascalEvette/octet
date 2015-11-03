@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-<AttemptLimit>1</AttemptLimit>
+<AttemptLimit>2</AttemptLimit>
 <WhiteBall>
 	<Location>
 		<x>-10</x>
@@ -28,9 +28,21 @@
 	</RedBall>
 	<RedBall>
 		<Location>
-			<x>12</x>
+			<x>-12</x>
 			<y>1</y>
 			<z>15</z>
+		</Location>
+		<Velocity>
+			<x>0</x>
+			<y>0</y>
+			<z>0</z>
+		</Velocity>	
+	</RedBall>
+	<RedBall>
+		<Location>
+			<x>-10</x>
+			<y>1</y>
+			<z>3</z>
 		</Location>
 		<Velocity>
 			<x>0</x>

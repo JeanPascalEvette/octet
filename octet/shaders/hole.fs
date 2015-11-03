@@ -15,7 +15,7 @@ void main() {
 	float fraction = dist / height;
 
 	//Gradient effect on the holes
-	gl_FragColor = vec4(vec3(0.2,0.2,0.2) * fraction, 1);
+	gl_FragColor = vec4(vec3(0.03,0.03,0.03) * fraction, 1);
 
 }
 
