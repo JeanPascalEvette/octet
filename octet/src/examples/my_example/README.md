@@ -6,5 +6,5 @@ My reasoning was that I knew that the point of view of the player would always b
 In order to do it, I passed a new variable to my fragment shader called height, which really was the radius of the hole. Using it in conjuction with the model_pos_, I could figure out how far away each fragment was from the center of the model, and I used that to determine the intensity of the color. The result is that while the holes are all black, the black is more intense near the center, and gradually gets lighter as you get closer to the edge, which gives it that feeling of depth.<br/>
 
 
-
+ 
 <a href="https://www.youtube.com/watch?v=nL9_l3HN5ss&feature=youtu.be">Short Youtube presentation</a>
