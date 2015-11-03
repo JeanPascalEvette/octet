@@ -25,9 +25,18 @@ When I got that working, I wanted to make sure that the player would have an ind
 
 <br/><br/>
 <h3>The Pockets</h3>
+As explained above, my pockets are simply discs hovering over the pool table. This means that the balls do not actually fall anywhere. In order to get the proper behaviour, I had to detect that the balls where going inside of a pocket and delete them.
+<br/><br/>
+To do this, I created the vecInsideOfCircle method to be able to determine whether a point (the center of a ball) is within a circle (one of the pockets).  Using it, I was able to check on each frame whether a ball is close enough to a pocket that I should call it inside and delete it.
+<br/><br/>
+At first, I had some issues deleting the balls that had gone inside pockets. While I thought I was able to delete them succesfully, I soon realized that some of the other balls sometimes started moving without any apparent reason. It turns out that while they were not displayed, the balls still existing and where causing collisions with the remaining balls. As a quick fix I decided to move any ball in a pocket below the pool table. <br/>
+Later on, I was able to figure out a way to truly delete the balls by removing their mesh_instance from the app_scene.
 
 <br/><br/>
 <h3>Keeping objects Awake</h3>
+Two of my most frustrating issues were actually both caused by the same thing. When testing, I realized that sometimes, I would not be able to interact with the white ball at all on startup and I had to reset the board to be able to interact with it. In addition, if I did interact with the ball, then waited until it stopped, it would go back to being non-interactible. On top of that, the balls sometimes had some very unexpected trajectories, making strange turns with any discernable cause.
+<br/><br/>
+It took me some time to figure it out, but I finally found out that every bullet rigid body has an activation state, and that depending on its state it can sometimes be deactivated, which in my case, would result in it becoming non-interactible (I could modify its velocity, but it would simply get reset to 0 on the next update() call.). Upon discovering that, I made sure to set the state to DISABLE_DEACTIVATION, and both of my issues were resolved.
 
 <br/><br/>
 <a href="https://www.youtube.com/watch?v=nL9_l3HN5ss&feature=youtu.be">Short Youtube presentation</a>
