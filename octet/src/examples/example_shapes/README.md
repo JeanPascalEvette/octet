@@ -24,10 +24,11 @@ In order to fix those two issues, I decided first to add a new field to scene_no
 While I don't mind having multiple collision events when an object stays in contact with another for more than a frame, I wanted to make sure that the sound file for the collision would not play multiple times. In order to do this, I would is the isPlaying() method from FMOD to make sure that the sound file was finished before running it again.
 
 
-
 <br/><br/>
 <h2>The Loading System</h2>
-
+Loading the different object based on settings from an XML file was not a big problem, as it is something I had already done for the Intro to Games Programming coursework. What was more interesting however, is that I wanted to be able to create constraints based on the data from the XML file. In the end, I decided that on top of the list of shapes, I would have a List of Links, which would contain the list of all my Spring and Hinge constraints. The structure of those links was simply the type of Link (Hinge or Spring), the id of the two shapes linked (based on the order on which they are in the xml file), and the Axis affected for the Hinge link. If I wanted to create more complicated Spring constraints I would have needed to set some extra properties in the XML file (Upper and Lower limits, stiffness,...), however it was not necessary for my demo.<br/><br/>
+While I was reading my file, I would store all the data recorded in vectors of predef_shape and predef_link. Those are two data classes that I created to hold the properties retrieved from the XML file.<br/><br/>
+Once the data has been retrieved, the shapes are created in the world based on the settings stored in the vector. Following that, each link is created based on the created shapes and the data stored in the vector of predef_link.
 
 <br/><br/>
 <h2>The Sound System</h2>
