@@ -10,11 +10,19 @@ After that, all that remained was to present a good example of a hinge. I decide
 
 <br/><br/>
 <h2>The Swing</h2>
-Implementing the swing for the most part reused concepts I had already figured out when trying the implement the hinge. I used the same webpage as an example, and then used the method I had already created to get my rigid bodies. From that point the difficulty was settings up all the small variables that affect the behaviour of the spring to make sure that it looked "springy" enough for the demo.
+Implementing the swing for the most part reused concepts I had already figured out when trying the implement the hinge. I used the same webpage as an example, and then used the method I had already created to get my rigid bodies. From that point the difficulty was settings up all the small variables that affect the behaviour of the spring to make sure that it looked "springy" enough for the demo, such as the upper and lower limits, and the stiffness. In the end, I had two boxes side by side linked by a spring. A hinge constraint with a third box guarantees that only one of the boxes will move, and the moving box then exhibits a spring-like behaviour.
+<img src="http://www.jeanpascalevette.com/img/boxes.PNG" alt="Boxes" align="right"/>
 
 
 <br/><br/>
 <h2>The Collision Detection</h2>
+Once again, the same webpage was again the source I used to learn how to implement the collision detection system (<a href="http://bullet.googlecode.com/svn/trunk/Demos/CollisionInterfaceDemo/CollisionInterfaceDemo.cpp"> this page</a>), along with <a href="http://hamelot.co.uk/programming/using-bullet-only-for-collision-detection/">another page</a> that provided similar information. The collision detection is run on every frame and checks every possible point of contact for every rigid body. Upon detecting the collision, I am outputing a confirmation in the Console.<br/><br/>
+In addition, I wanted to implement a sound effect when there is a collision. I will talk more about implementing FMOD below, however I want to mention that one of the issues I faced was that there was multiple collisions between rigid bodies and the ground, and that the spring constraint was causing multiple collisions a second.
+<br/><br/>
+In order to fix those two issues, I decided first to add a new field to scene_node called "ignoresCollisions", which is used to set a body to ignore collisions. This is set to true for the ground, which is then used to ignore the ground's collision events.
+<br/><br/>
+While I don't mind having multiple collision events when an object stays in contact with another for more than a frame, I wanted to make sure that the sound file for the collision would not play multiple times. In order to do this, I would is the isPlaying() method from FMOD to make sure that the sound file was finished before running it again.
+
 
 
 <br/><br/>
