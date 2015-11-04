@@ -1,6 +1,6 @@
 
-#include "fmod.hpp"
-#include "fmod_errors.h"
+#include "inc\fmod.hpp"
+#include "inc\fmod_errors.h"
 #include <stddef.h>
 
 namespace octet
