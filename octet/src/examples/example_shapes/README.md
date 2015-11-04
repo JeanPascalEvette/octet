@@ -32,7 +32,9 @@ Once the data has been retrieved, the shapes are created in the world based on t
 
 <br/><br/>
 <h2>The Sound System</h2>
-
+I wanted to implement a sound system to be able to underline collisions a bit more thant a simple console output. After setting up the Linking and Include properties, and installing FMOD, I was able to create the SoundSystem class and implement FMOD through it. One big issue I faced is that the output keyword is defined somewhere in bullet using the #define preprocessing command. The problem is that output is also the name of some parameters in the FMOD files. At first, I simply modified those files to OutputVal and it did work. That being said, as soon as I tried to do it on a different computer, the issue showed up again, because the files were still stored in my Program Files directory.
+<br/><br/>
+In the end, the solution I found is to use the #undef command to undefine output before I include FMOD, and the redefine it after it. This does avoid the issues I had and does not seem to create any new issue.
 
 <br/><br/>
-<a href="">Short Youtube Presentation</a>
+<a href="https://youtu.be/Rbzbe6unxS4">Short Youtube Presentation</a>
