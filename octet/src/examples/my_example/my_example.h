@@ -202,7 +202,11 @@ namespace octet {
 
 		//Read XML file of the level to load data
 		tinyxml2::XMLDocument doc;	
-		doc.LoadFile(levelName);
+		if (doc.LoadFile(levelName) != 0)
+		{
+			attemptLimit = -1;
+			return;
+		}
 		attemptLimit = atof(doc.FirstChildElement("Data")->FirstChildElement("AttemptLimit")->GetText());;
 		float whiteBallLocX = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("x")->GetText());
 		float whiteBallLocY = atof(doc.FirstChildElement("Data")->FirstChildElement("WhiteBall")->FirstChildElement("Location")->FirstChildElement("y")->GetText());
@@ -499,7 +503,7 @@ namespace octet {
 		}
 
 		// If Every red ball is in a hole, go to next level
-		if (redBalls.size() == 0)
+		if (redBalls.size() == 0 && attemptLimit != -1)
 			goToNextLevel();
 	}
 
@@ -542,10 +546,14 @@ namespace octet {
 	void handleInputs()
 	{
 		// Space = Reset
-		if (is_key_down(key_space))
+		if (is_key_going_down(key_space))
 		{
 			resetBoard();
 			return;
+		}
+		else if (is_key_going_down(key_f1))
+		{
+			goToNextLevel();
 		}
 
 
@@ -553,7 +561,7 @@ namespace octet {
 		if (attemptLimit <= 0) return;
 
 		// Ctrl = Debug
-		if (is_key_down(key_ctrl))
+		if (is_key_going_down(key_ctrl))
 		{
 			testMode = !testMode;
 		}
@@ -562,6 +570,7 @@ namespace octet {
 			eraseRay();
 			int newX, newY;
 			get_mouse_pos(newX, newY);
+			
 			vec3 mouseWorldPos = convertScreenToWorld(vec3(newX, 3, newY));
 			if (is_key_down(key_lmb))
 				printf("X: %d Y: %d\n X2: %f Y2: %f\n\n", newX, newY, mouseWorldPos.x(), mouseWorldPos.z());
@@ -616,16 +625,25 @@ namespace octet {
 				buf[1],
 				buf[2]
 				);
-		else
+		else if(attemptLimit == -1)
 			myInfoText->format(
 				"Current Level: %s\n"
 				"Red Balls Remaining: %s\n"
-				"Attempts Remaining: %s\n"
-				"Game Over : Please Space to Retry",
+				"Attempts Remaining: 0\n"
+				"Congratulations ! You have completed the game.",
 				buf[0],
-				buf[1],
-				buf[2]
+				buf[1]
 				);
+		else
+			myInfoText->format(
+			"Current Level: %s\n"
+			"Red Balls Remaining: %s\n"
+			"Attempts Remaining: %s\n"
+			"Game Over : Please Space to Retry",
+			buf[0],
+			buf[1],
+			buf[2]
+			);
 
 		// convert it to a mesh.
 		myInfoText->update();
