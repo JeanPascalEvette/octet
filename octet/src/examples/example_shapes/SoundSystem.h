@@ -1,6 +1,8 @@
 
-#include "inc\fmod\fmod.hpp"
-#include "inc\fmod\fmod_errors.h"
+#undef output 
+#include "fmod.hpp"
+#include "fmod_errors.h"
+#define output &scratch_r[bod->getNumDofs()]
 #include <stddef.h>
 
 namespace octet
