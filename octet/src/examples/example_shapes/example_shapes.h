@@ -230,6 +230,8 @@ namespace octet {
 					hinge->setLimit(0, 0.5f);
 					world->addConstraint(hinge, true);
 
+					
+
 				}
 				else if (listOfLinks[currentLink].getType() == "Spring")
 				{
