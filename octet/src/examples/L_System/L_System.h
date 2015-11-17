@@ -6,6 +6,7 @@
 //
 #include <sstream>
 #include "tinyxml2.h"
+
 namespace octet {
 	class Model
 	{
@@ -14,6 +15,8 @@ namespace octet {
 		std::map<char, std::string> rules;
 		int iterations;
 		bool noFSystem;
+
+
 
 	public:
 		Model() {}
@@ -73,6 +76,9 @@ namespace octet {
 	float additionalThickness;
 	float lineHalfLength;
 
+	float highestY, lowestY;
+	float highestX, lowestX;
+
 	enum ColorScheme {
 		ALTERNATING,
 		TREELIKE,
@@ -95,6 +101,10 @@ namespace octet {
 	  lineHalfLength = 1.0f;
 	  additionalThickness = 0.0f;
 
+	  highestY = 0;
+	  lowestY = 0;
+	  highestX = 0;
+	  lowestX = 0;
 
 
 	  aabb bb(vec3(144.5f, 305.0f, 0.0f), vec3(256, 64, 0));
@@ -144,7 +154,7 @@ namespace octet {
 
 	void generateTree()
 	{
-		app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 14, 0));
+		//app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 14, 0));
 		currentMaterial = 0;
 		material *red = new material(vec4(1, 0, 0, 1));
 		material *green = new material(vec4(0, 1, 0, 1));
@@ -257,6 +267,7 @@ namespace octet {
 
 	vec3 drawLine(vec3 startingPoint, float angle = 0.0f)
 	{
+		
 		material * color = listOfMaterials[currentMaterial];
 		if (colorSchemeType == TREELIKE)
 			color = currentTreeMaterial;
@@ -273,6 +284,25 @@ namespace octet {
 			endPoint.x() = endPoint.x() + 2.0f*lineHalfLength *cos((angle + 90) * CL_M_PI / 180);
 			endPoint.y() = endPoint.y() + 2.0f*lineHalfLength *sin((angle + 90) * CL_M_PI / 180);
 		
+
+			if (startingPoint.y() > highestY)
+				highestY = startingPoint.y();
+			if (startingPoint.y() < lowestY)
+				lowestY = startingPoint.y();
+			if (endPoint.y() > highestY)
+				highestY = endPoint.y();
+			if (endPoint.y() < lowestY)
+				lowestY = endPoint.y();
+
+			if (startingPoint.x() > highestX)
+				highestX = startingPoint.x();
+			if (startingPoint.x() < lowestX)
+				lowestX = startingPoint.x();
+			if (endPoint.x() > highestX)
+				highestX = endPoint.x();
+			if (endPoint.x() < lowestX)
+				lowestX = endPoint.x();
+
 		mat4t mat = mat4t();
 		mat.loadIdentity();
 		mat.rotate(90.0f, 1, 0, 0);
@@ -303,15 +333,25 @@ namespace octet {
 		float margin = lineHalfLength;
 		if (listOfLines.size() == 0) return;
 
-		float highestY = 0;
-		for (int i = 0; i < listOfLines.size(); i++)
-			if (listOfLines[i]->get_position().y() > highestY)
-				highestY = listOfLines[i]->get_position().y();
-		float lowestY = 0;
-		for (int i = 0; i < listOfLines.size(); i++)
-			if (listOfLines[i]->get_position().y() < lowestY)
-				lowestY = listOfLines[i]->get_position().y();
+		//float highestY = 0;
+		//for (int i = 0; i < listOfLines.size(); i++)
+		//	if (listOfLines[i]->get_position().y() > highestY)
+		//		highestY = listOfLines[i]->get_position().y();
+		//float lowestY = 0;
+		//for (int i = 0; i < listOfLines.size(); i++)
+		//	if (listOfLines[i]->get_position().y() < lowestY)
+		//		lowestY = listOfLines[i]->get_position().y();
 
+		float sceneHeightY = highestY - lowestY;
+		float sceneHeightX = highestX - lowestX;
+		float highestHeight = sceneHeightY;
+		if (sceneHeightX > highestHeight) highestHeight = sceneHeightX;
+
+		vec3 currentCamPos = app_scene->get_camera_instance(0)->get_node()->get_position();
+		vec3 newCamPos = -currentCamPos + vec3(highestX - sceneHeightX / 2, highestY - sceneHeightY / 2 , highestHeight / 80.0f * 100.0f);
+		app_scene->get_camera_instance(0)->get_node()->translate(newCamPos);
+
+		return;
 		vec2 fov = app_scene->get_camera_instance(0)->getFov();
 		vec3 cameraPos = app_scene->get_camera_instance(0)->get_node()->get_position();
 		cameraPos.y() = 0;
@@ -345,13 +385,18 @@ namespace octet {
 
 	void reset()
 	{
-		app_scene->reset();
+		highestY = 0;
+		lowestY = 0;
+		highestX = 0;
+		lowestX = 0;
 		std::vector<ref<scene_node>>::iterator it;
 		for (it = listOfLines.begin(); it != listOfLines.end();)
 		{
 			it = listOfLines.erase(it);
 		}
 		listOfLines.shrink_to_fit();
+		app_scene->reset();
+		app_scene->release();
 		app_scene = new visual_scene();
 		app_scene->create_default_camera_and_lights();
 		app_scene->get_camera_instance(0)->set_far_plane(1000000000.0f);
