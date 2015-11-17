@@ -6,5 +6,5 @@
 	<Rule>X->X+YF+</Rule>
 	<Rule>Y->-FX-Y</Rule>
 </Rules>
-<Iterations>10</Iterations>
+<Iterations>15</Iterations>
 </Data>

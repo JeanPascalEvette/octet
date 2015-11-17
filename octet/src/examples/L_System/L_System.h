@@ -64,7 +64,6 @@ namespace octet {
 	std::vector<material*> listOfMaterials;
 	int currentMaterial;
 
-	std::vector<ref<scene_node>> listOfLines;
 	std::vector<std::pair<vec3, float>> savedPointStack;
 
 	Model currentModel;
@@ -318,7 +317,6 @@ namespace octet {
 		app_scene->add_child(node);
 		app_scene->add_mesh_instance(new mesh_instance(node, line, color));
 		node->translate(midPoint);
-		listOfLines.push_back(node);
 		node->rotate(angle, vec3(0, 0, 1));
 
 
@@ -331,16 +329,6 @@ namespace octet {
 	void checkCamera(int vx, int vy)
 	{
 		float margin = lineHalfLength;
-		if (listOfLines.size() == 0) return;
-
-		//float highestY = 0;
-		//for (int i = 0; i < listOfLines.size(); i++)
-		//	if (listOfLines[i]->get_position().y() > highestY)
-		//		highestY = listOfLines[i]->get_position().y();
-		//float lowestY = 0;
-		//for (int i = 0; i < listOfLines.size(); i++)
-		//	if (listOfLines[i]->get_position().y() < lowestY)
-		//		lowestY = listOfLines[i]->get_position().y();
 
 		float sceneHeightY = highestY - lowestY;
 		float sceneHeightX = highestX - lowestX;
@@ -352,6 +340,10 @@ namespace octet {
 		app_scene->get_camera_instance(0)->get_node()->translate(newCamPos);
 
 		return;
+
+
+		// No longer used - this is the previous way I implemented the placement of the camera.
+
 		vec2 fov = app_scene->get_camera_instance(0)->getFov();
 		vec3 cameraPos = app_scene->get_camera_instance(0)->get_node()->get_position();
 		cameraPos.y() = 0;
@@ -389,12 +381,7 @@ namespace octet {
 		lowestY = 0;
 		highestX = 0;
 		lowestX = 0;
-		std::vector<ref<scene_node>>::iterator it;
-		for (it = listOfLines.begin(); it != listOfLines.end();)
-		{
-			it = listOfLines.erase(it);
-		}
-		listOfLines.shrink_to_fit();
+
 		app_scene->reset();
 		app_scene->release();
 		app_scene = new visual_scene();
