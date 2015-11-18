@@ -12,7 +12,7 @@ namespace octet {
 	{
 		std::string axiom;
 		float angle;
-		std::map<char, std::string> rules;
+		std::map<std::string, std::vector<std::string>> rules;
 		int iterations;
 		bool noFSystem;
 
@@ -20,18 +20,23 @@ namespace octet {
 
 	public:
 		Model() {}
-		Model(std::string myAxiom, float myAngle, std::map<char, std::string> myRules, int myIterations)
+		Model(std::string myAxiom, float myAngle, std::map<std::string, std::vector<std::string>> myRules, int myIterations)
 		{
 			axiom = myAxiom;
 			angle = myAngle;
 			rules = myRules;
 			iterations = myIterations;
 			noFSystem = true;
-			std::map<char, std::string>::iterator it;
+			std::map<std::string, std::vector<std::string>>::iterator it;
 			for (it = myRules.begin(); it != myRules.end();)
 			{
-				if (it->second.find('F') != -1)
-					noFSystem = false;
+				std::vector<std::string>::iterator it2;
+				for (it2 = it->second.begin(); it2 != it->second.end();)
+				{
+					if (it2->find('F') != -1)
+						noFSystem = false;
+					it2++;
+				}
 				it++;
 			}
 		}
@@ -39,7 +44,7 @@ namespace octet {
 		float getAngle() {
 			return angle;
 		}
-		std::map<char, std::string> getRules() {
+		std::map<std::string, std::vector<std::string>> getRules() {
 			return rules;
 		}
 		int getIterations() {
@@ -74,6 +79,7 @@ namespace octet {
 	int currentIteration;
 	float additionalThickness;
 	float lineHalfLength;
+	const int FILENUMBER = 10;
 
 	float highestY, lowestY;
 	float highestX, lowestX;
@@ -122,7 +128,7 @@ namespace octet {
 	{
 
 		std::vector<std::string> rules = std::vector<std::string>();
-		std::map<char, std::string> decodedRules = std::map<char, std::string>();
+		std::map<std::string, std::vector<std::string>> decodedRules = std::map<std::string, std::vector<std::string>>();
 
 		tinyxml2::XMLDocument doc;
 		char aChar =  65 + currentFile;
@@ -141,9 +147,9 @@ namespace octet {
 
 		for (int i = 0;i < rules.size(); i++)
 		{
-			char pre = (rules[i].substr(0, rules[i].find_first_of("->"))[0]);
+			std::string pre = (rules[i].substr(0, rules[i].find_first_of("->")));
 			std::string post = rules[i].substr(rules[i].find_first_of("->") + 2, rules[i].size());
-			decodedRules[pre] = post;
+			decodedRules[pre].push_back(post);
 
 		}
 		int iterations = atoi(doc.FirstChildElement("Data")->FirstChildElement("Iterations")->GetText());
@@ -174,21 +180,25 @@ namespace octet {
 		listOfMaterials.push_back(white);
 		listOfMaterials.push_back(black);
 		std::string startingAxiom = currentModel.getAxiom();
-		std::map<char, std::string> rules = currentModel.getRules();
+		std::map<std::string, std::vector<std::string>> rules = currentModel.getRules();
 		nextPoint = vec3(0, 0, 0);
 		for (int i = 0; i < currentIteration; i++)
 		{
 			std::string newAxiom = "";
 			for (int u = 0; u < startingAxiom.size(); u++)
 			{
-				char currentChar = startingAxiom[u];
+				std::string currentChar = std::string(1,startingAxiom[u]);
 				bool found = false;
-				std::map<char, std::string>::iterator it;
+				std::map<std::string, std::vector<std::string>>::iterator it;
 				for (it = rules.begin(); it != rules.end();)
 				{
-					if (it->first == currentChar)
+					if( 
+						(it->first.find("<") != 1 || (u > 0 && std::string(1, startingAxiom[u - 1]) == std::string(1, it->first[0]))) &&
+						(it->first.find(">") != 3 || (u < startingAxiom.size() && std::string(1, startingAxiom[u + 1]) == std::string(1, it->first[4]))) && 
+						(it->first == currentChar || it->first.find(currentChar) == 2)
+						)
 					{
-						newAxiom += it->second;
+						newAxiom += it->second[rand() % it->second.size()];
 						found = true;
 						break;
 					}
@@ -393,7 +403,7 @@ namespace octet {
 	{
 		if (is_key_going_down(key_up))
 		{
-			currentFile = (currentFile + 1) % 8;
+			currentFile = (currentFile + 1) % FILENUMBER;
 			currentIteration = 1;
 			reset();
 			loadFile();
@@ -402,7 +412,7 @@ namespace octet {
 		{
 			currentFile = (currentFile - 1);
 			currentIteration = 1;
-			if (currentFile < 0) currentFile = 7;
+			if (currentFile < 0) currentFile = FILENUMBER - 1;
 			reset();
 			loadFile();
 		}
