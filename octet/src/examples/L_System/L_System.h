@@ -127,6 +127,7 @@ namespace octet {
 
     }
 
+	// Loading data from specified file. The file loaded depends on the currentFile variable.
 	void loadFile()
 	{
 
@@ -150,6 +151,13 @@ namespace octet {
 			el = el->NextSibling();
 		}
 
+		//Storing the data in a vector
+		//Structure : 
+		//	{ F ->	{	{F[[XF]F]	, 20},
+		//				{FF			, 80}	 }
+		//	  F>X ->{	{FXX		, 100}	 }
+		//	}
+		//
 		for (int i = 0;i < rules.size(); i++)
 		{
 			std::string pre = (rules[i].first.substr(0, rules[i].first.find("->")));
@@ -164,7 +172,6 @@ namespace octet {
 
 	void generateTree()
 	{
-		//app_scene->get_camera_instance(0)->get_node()->translate(vec3(0, 14, 0));
 		currentMaterial = 0;
 		material *red = new material(vec4(1, 0, 0, 1));
 		material *green = new material(vec4(0, 1, 0, 1));
@@ -187,13 +194,17 @@ namespace octet {
 		std::string startingAxiom = currentModel.getAxiom();
 		std::map<std::string, std::vector<std::pair<std::string, int>>> rules = currentModel.getRules();
 		nextPoint = vec3(0, 0, 0);
+		//For each iteration
 		for (int i = 0; i < currentIteration; i++)
 		{
 			std::string newAxiom = "";
+			//And for each letter in the current string
 			for (int u = 0; u < startingAxiom.size(); u++)
 			{
 				std::string currentChar = std::string(1,startingAxiom[u]);
 				bool found = false;
+
+				//Go through each rule and apply the one that corresponds
 				std::map<std::string, std::vector<std::pair<std::string, int>>>::iterator it;
 				for (it = rules.begin(); it != rules.end();)
 				{
@@ -204,6 +215,7 @@ namespace octet {
 					if (it->first.find(">") != -1)
 						post = it->first.substr(it->first.find(">") + 1, it->first.size() - (it->first.find(">")+1));
 
+					//Checking for context sensitive properties
 					bool b1 = (it->first.find("<") == -1 || (u >= prev.size() && startingAxiom.substr(u - prev.size(), prev.size()) == prev));
 					bool b2 = (it->first.find(">") == -1 || (u + post.size() <= startingAxiom.size() && startingAxiom.substr(u + 1, u + 1 + post.size()) == post));
 					bool b3 = (it->first == currentChar || it->first.substr(prev.size() + 1, 1) == (currentChar));
@@ -213,6 +225,8 @@ namespace octet {
 						b3
 						)
 					{
+
+						//Checking for stochastic properties
 						int maxPercent = 0;
 						for (int i = 0; i < it->second.size(); i++)
 							maxPercent += it->second[i].second;
@@ -236,6 +250,9 @@ namespace octet {
 			startingAxiom = newAxiom;
 		}
 
+		//Then when the final string has been generated - draw the tree
+
+		//First try to guess where the branches are for the coloring
 		float angle = 0.0f;
 		std::vector<int> listBranches = std::vector<int>();
 		for (int i = 0; i < startingAxiom.size(); i++)
@@ -252,6 +269,8 @@ namespace octet {
 				}
 			}
 		}
+
+		//Then apply the right step depending on the letter
 		for (int i = 0; i < startingAxiom.size(); i++)
 		{
 			if (startingAxiom[i] == 'F' || (currentModel.isNoFSystem() && (startingAxiom[i] == 'A')))
