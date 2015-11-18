@@ -70,6 +70,7 @@ namespace octet {
 	int currentMaterial;
 
 	std::vector<std::pair<vec3, float>> savedPointStack;
+	std::vector<std::pair<vec3, float>> listLines;
 
 	Model currentModel;
 
@@ -105,6 +106,8 @@ namespace octet {
 	  colorSchemeType = ALTERNATING;
 	  lineHalfLength = 1.0f;
 	  additionalThickness = 0.0f;
+	  listLines = std::vector<std::pair<vec3, float>>();
+
 
 	  highestY = 0;
 	  lowestY = 0;
@@ -147,8 +150,8 @@ namespace octet {
 
 		for (int i = 0;i < rules.size(); i++)
 		{
-			std::string pre = (rules[i].substr(0, rules[i].find_first_of("->")));
-			std::string post = rules[i].substr(rules[i].find_first_of("->") + 2, rules[i].size());
+			std::string pre = (rules[i].substr(0, rules[i].find("->")));
+			std::string post = rules[i].substr(rules[i].find("->") + 2, rules[i].size());
 			decodedRules[pre].push_back(post);
 
 		}
@@ -192,10 +195,20 @@ namespace octet {
 				std::map<std::string, std::vector<std::string>>::iterator it;
 				for (it = rules.begin(); it != rules.end();)
 				{
+					std::string prev = "";
+					std::string post = "";
+					if(it->first.find("<") != -1)
+						prev = it->first.substr(0, it->first.find("<"));
+					if (it->first.find(">") != -1)
+						post = it->first.substr(it->first.find(">") + 1, it->first.size() - (it->first.find(">")+1));
+
+					bool b1 = (it->first.find("<") == -1 || (u >= prev.size() && startingAxiom.substr(u - prev.size(), prev.size()) == prev));
+					bool b2 = (it->first.find(">") == -1 || (u + post.size() <= startingAxiom.size() && startingAxiom.substr(u + 1, u + 1 + post.size()) == post));
+					bool b3 = (it->first == currentChar || it->first.substr(prev.size() + 1, 1) == (currentChar));
 					if( 
-						(it->first.find("<") != 1 || (u > 0 && std::string(1, startingAxiom[u - 1]) == std::string(1, it->first[0]))) &&
-						(it->first.find(">") != 3 || (u < startingAxiom.size() && std::string(1, startingAxiom[u + 1]) == std::string(1, it->first[4]))) && 
-						(it->first == currentChar || it->first.find(currentChar) == 2)
+						b1 &&
+						b2 && 
+						b3
 						)
 					{
 						newAxiom += it->second[rand() % it->second.size()];
@@ -294,6 +307,21 @@ namespace octet {
 			endPoint.y() = endPoint.y() + 2.0f*lineHalfLength *sin((angle + 90) * CL_M_PI / 180);
 		
 
+			//This is designed to prevent drawing the same line twice to improve performance
+			std::pair<vec3, float> currentLine = std::pair<vec3, float>(startingPoint, angle);
+			std::vector<std::pair<vec3, float>>::iterator it;
+			for (it = listLines.begin(); it != listLines.end();)
+			{
+				if (it->first.x() == currentLine.first.x() &&
+					it->first.y() == currentLine.first.y() && 
+					it->first.z() == currentLine.first.z() && 
+					it->second == currentLine.second)
+				{
+					return endPoint;
+				}
+				it++;
+			}
+			listLines.push_back(currentLine);
 			if (startingPoint.y() > highestY)
 				highestY = startingPoint.y();
 			if (startingPoint.y() < lowestY)
@@ -397,6 +425,8 @@ namespace octet {
 		app_scene = new visual_scene();
 		app_scene->create_default_camera_and_lights();
 		app_scene->get_camera_instance(0)->set_far_plane(1000000000.0f);
+
+		listLines.clear();
 	}
 
 	void handleInputs()

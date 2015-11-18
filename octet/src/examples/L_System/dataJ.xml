@@ -3,8 +3,8 @@
 <Axiom>F</Axiom>
 <Angle>25.7></Angle>
 <Rules>
-	<Rule>E&lt;F->F[F[+++]][F[---]]</Rule>
+	<Rule>E&lt;F->F[F]</Rule>
 	<Rule>F->F[-EF[]]E[+F[]]</Rule>
 </Rules>
-<Iterations>5</Iterations>
+<Iterations>8</Iterations>
 </Data>
