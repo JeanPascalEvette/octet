@@ -12,7 +12,7 @@ namespace octet {
 	{
 		std::string axiom;
 		float angle;
-		std::map<std::string, std::vector<std::string>> rules;
+		std::map<std::string, std::vector<std::pair<std::string, int>>> rules;
 		int iterations;
 		bool noFSystem;
 
@@ -20,20 +20,20 @@ namespace octet {
 
 	public:
 		Model() {}
-		Model(std::string myAxiom, float myAngle, std::map<std::string, std::vector<std::string>> myRules, int myIterations)
+		Model(std::string myAxiom, float myAngle, std::map<std::string, std::vector<std::pair<std::string, int>>> myRules, int myIterations)
 		{
 			axiom = myAxiom;
 			angle = myAngle;
 			rules = myRules;
 			iterations = myIterations;
 			noFSystem = true;
-			std::map<std::string, std::vector<std::string>>::iterator it;
+			std::map<std::string, std::vector<std::pair<std::string, int>>>::iterator it;
 			for (it = myRules.begin(); it != myRules.end();)
 			{
-				std::vector<std::string>::iterator it2;
+				std::vector<std::pair<std::string, int>>::iterator it2;
 				for (it2 = it->second.begin(); it2 != it->second.end();)
 				{
-					if (it2->find('F') != -1)
+					if (it2->first.find('F') != -1)
 						noFSystem = false;
 					it2++;
 				}
@@ -44,7 +44,7 @@ namespace octet {
 		float getAngle() {
 			return angle;
 		}
-		std::map<std::string, std::vector<std::string>> getRules() {
+		std::map<std::string, std::vector<std::pair<std::string, int>>> getRules() {
 			return rules;
 		}
 		int getIterations() {
@@ -130,8 +130,8 @@ namespace octet {
 	void loadFile()
 	{
 
-		std::vector<std::string> rules = std::vector<std::string>();
-		std::map<std::string, std::vector<std::string>> decodedRules = std::map<std::string, std::vector<std::string>>();
+		std::vector<std::pair<std::string, int>> rules = std::vector<std::pair<std::string, int>>();
+		std::map<std::string, std::vector<std::pair<std::string, int>>> decodedRules = std::map<std::string, std::vector<std::pair<std::string, int>>>();
 
 		tinyxml2::XMLDocument doc;
 		char aChar =  65 + currentFile;
@@ -144,14 +144,16 @@ namespace octet {
 		tinyxml2::XMLNode * el = doc.FirstChildElement("Data")->FirstChildElement("Rules")->FirstChildElement();
 		while (el != nullptr)
 		{
-			rules.push_back(el->ToElement()->GetText());
+			int percentage = 100;
+			el->ToElement()->QueryIntAttribute("chance", &percentage);
+			rules.push_back(std::pair<std::string, int>(el->ToElement()->GetText(), percentage));
 			el = el->NextSibling();
 		}
 
 		for (int i = 0;i < rules.size(); i++)
 		{
-			std::string pre = (rules[i].substr(0, rules[i].find("->")));
-			std::string post = rules[i].substr(rules[i].find("->") + 2, rules[i].size());
+			std::string pre = (rules[i].first.substr(0, rules[i].first.find("->")));
+			std::pair<std::string, int> post = std::pair<std::string, int>(rules[i].first.substr(rules[i].first.find("->") + 2, rules[i].first.size()), rules[i].second);
 			decodedRules[pre].push_back(post);
 
 		}
@@ -183,7 +185,7 @@ namespace octet {
 		listOfMaterials.push_back(white);
 		listOfMaterials.push_back(black);
 		std::string startingAxiom = currentModel.getAxiom();
-		std::map<std::string, std::vector<std::string>> rules = currentModel.getRules();
+		std::map<std::string, std::vector<std::pair<std::string, int>>> rules = currentModel.getRules();
 		nextPoint = vec3(0, 0, 0);
 		for (int i = 0; i < currentIteration; i++)
 		{
@@ -192,7 +194,7 @@ namespace octet {
 			{
 				std::string currentChar = std::string(1,startingAxiom[u]);
 				bool found = false;
-				std::map<std::string, std::vector<std::string>>::iterator it;
+				std::map<std::string, std::vector<std::pair<std::string, int>>>::iterator it;
 				for (it = rules.begin(); it != rules.end();)
 				{
 					std::string prev = "";
@@ -211,7 +213,17 @@ namespace octet {
 						b3
 						)
 					{
-						newAxiom += it->second[rand() % it->second.size()];
+						int maxPercent = 0;
+						for (int i = 0; i < it->second.size(); i++)
+							maxPercent += it->second[i].second;
+						int percent = rand() % maxPercent;
+						int cumulatedPercent = 0;
+						for (int i = 0; i < it->second.size(); i++)
+						{
+							cumulatedPercent += it->second[i].second;
+							if(percent <= cumulatedPercent)
+								newAxiom += it->second[i].first;
+						}
 						found = true;
 						break;
 					}

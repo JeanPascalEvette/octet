@@ -3,9 +3,9 @@
 <Axiom>F</Axiom>
 <Angle>25.7></Angle>
 <Rules>
-	<Rule>F->F[+F]F[-F]F</Rule>
-	<Rule>F->F[+F]F</Rule>
-	<Rule>F->F[-F]F</Rule>
+	<Rule chance="40">F->F[+F]F[-F]F</Rule>
+	<Rule chance="20">F->F[+F]F</Rule>
+	<Rule chance="40">F->F[-F]F</Rule>
 </Rules>
-<Iterations>5</Iterations>
+<Iterations>4</Iterations>
 </Data>
